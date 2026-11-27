@@ -20,6 +20,11 @@ cta:
   # escribe aquí la frase, p. ej.: "Want more series? Support the channel, link in bio."
   apoyo: "If you enjoy these, consider supporting the channel. Link in bio."
 
+# ===== Visuales =====
+# "pexels" -> videos de stock reales, GRATIS (necesita PEXELS_API_KEY)
+# "gemini" -> imágenes generadas con IA (≈ $0.034 c/u, necesita facturación activa en Google)
+visuales: "pexels"
+
 # ===== Modelos de Google (Gemini API) =====
 # Si Google cambia los nombres, ejecuta: python tools/listar_modelos.py
 modelos:

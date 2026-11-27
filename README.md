@@ -43,7 +43,12 @@ python tools/obtener_token_tiktok.py
 ```
 Abre el enlace que imprime, acepta, copia el código que muestra la página y pégalo. Te da el **refresh token**.
 
-## Paso 6 — 💳 AQUÍ PAGAS: API de Gemini
+## Paso 5b — Pexels (gratis)
+1. Crea una cuenta en **pexels.com** y entra a **pexels.com/api** → *Your API Key*.
+2. Guárdala en GitHub como secreto `PEXELS_API_KEY`.
+Con `visuales: "pexels"` en `config.yaml` todo el pipeline es gratis.
+
+## Paso 6 — 💳 (Opcional, más adelante) Imágenes IA con Gemini
 1. Entra a **aistudio.google.com → Get API key → Create API key**.
 2. **Set up billing**: vincula tu tarjeta y carga **$10**, que alcanzan para unos 50 videos.
 3. Pon un **límite de gasto mensual de $10** en el proyecto.

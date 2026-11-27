@@ -47,6 +47,21 @@ def segmento(imagen: Path, audio: Path, destino: Path, cfg_video: dict, idx: int
     return dur
 
 
+def segmento_video(clip: Path, audio: Path, destino: Path, cfg_video: dict) -> float:
+    """Escena a partir de un clip de stock: recorta a vertical, repite si es corto, quita su audio."""
+    w, h, fps = cfg_video["ancho"], cfg_video["alto"], cfg_video["fps"]
+    dur = duracion(audio) + 0.25
+    vf = (f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},fps={fps},"
+          f"setsar=1,format=yuv420p[v];[1:a]apad,aresample=44100[a]")
+    _run([
+        "ffmpeg", "-y", "-stream_loop", "-1", "-i", str(clip), "-i", str(audio), "-filter_complex", vf,
+        "-map", "[v]", "-map", "[a]", "-t", f"{dur:.3f}",
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-r", str(fps),
+        "-c:a", "aac", "-b:a", "160k", "-ac", "2", str(destino),
+    ])
+    return dur
+
+
 def _ts(s: float) -> str:
     h, rem = divmod(max(s, 0), 3600)
     m, sec = divmod(rem, 60)
@@ -84,7 +99,10 @@ def montar(trabajo: Path, escenas: list[dict], cfg: dict, carpeta_musica: Path) 
     segmentos, palabras, t = [], [], 0.0
     for i, e in enumerate(escenas):
         seg = trabajo / f"seg_{i:02d}.mp4"
-        dur = segmento(e["imagen"], e["audio"], seg, v, i)
+        if e.get("tipo") == "video":
+            dur = segmento_video(e["imagen"], e["audio"], seg, v)
+        else:
+            dur = segmento(e["imagen"], e["audio"], seg, v, i)
         palabras += [(a + t, b + t, txt) for a, b, txt in e["palabras"]]
         t += dur
         segmentos.append(seg)

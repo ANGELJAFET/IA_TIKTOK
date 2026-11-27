@@ -43,12 +43,13 @@ Rules:
 - {cierre}
 - Facts must be TRUE and widely verifiable. No made-up numbers. Simple, punchy sentences.
 - For each scene write an image prompt in English using this style: {estilo}. No text, letters or logos. No real famous people's faces.
+- For each scene also write "busqueda": a 2-4 word English search query to find matching STOCK FOOTAGE (concrete, filmable things, e.g. "dark forest fog", "ancient roman ruins", "close up eye").
 
 Return ONLY JSON:
 {{
   "titulo": "TikTok caption, max 110 chars, with 1 emoji (do not add the part number)",
   "resumen": "one sentence summary of what this part revealed",
-  "escenas": [{{"narracion": "...", "imagen": "..."}}]
+  "escenas": [{{"narracion": "...", "imagen": "...", "busqueda": "..."}}]
 }}"""
 
 

@@ -14,7 +14,7 @@ from pathlib import Path
 import yaml
 from google import genai
 
-from pipeline import guion, imagenes, montaje, tiktok, voz
+from pipeline import guion, imagenes, montaje, pexels, tiktok, voz
 
 RAIZ = Path(__file__).parent
 HISTORIAL = RAIZ / "data" / "historial.json"
@@ -64,13 +64,18 @@ def main():
     print(f"  {g['tema']}")
 
     # 2. Imágenes + voz por escena
-    escenas = []
+    fuente = cfg.get("visuales", "pexels")
+    escenas, usados = [], set()
     for i, e in enumerate(g["escenas"]):
-        print(f"▶ Escena {i + 1}/{len(g['escenas'])}")
-        img = imagenes.generar_imagen(client, cfg["modelos"]["imagen"], e["imagen"], trabajo / f"img_{i:02d}")
+        print(f"▶ Escena {i + 1}/{len(g['escenas'])} ({fuente})")
+        if fuente == "gemini":
+            img, tipo = imagenes.generar_imagen(client, cfg["modelos"]["imagen"], e["imagen"], trabajo / f"img_{i:02d}"), "imagen"
+        else:
+            consultas = [e.get("busqueda", ""), " ".join(e.get("busqueda", "").split()[:2]), plan["serie"]]
+            img, tipo = pexels.visual_para_escena(consultas, trabajo / f"vis_{i:02d}", usados)
         mp3 = trabajo / f"voz_{i:02d}.mp3"
         palabras = voz.narrar(e["narracion"], cfg["voz"]["nombre"], cfg["voz"]["velocidad"], mp3)
-        escenas.append({"imagen": img, "audio": mp3, "palabras": palabras})
+        escenas.append({"imagen": img, "tipo": tipo, "audio": mp3, "palabras": palabras})
 
     # 3. Montaje
     print("▶ Montaje")
