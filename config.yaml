@@ -23,7 +23,7 @@ cta:
 # ===== Visuales =====
 # "pexels" -> videos de stock reales, GRATIS (necesita PEXELS_API_KEY)
 # "gemini" -> imágenes generadas con IA (≈ $0.034 c/u, necesita facturación activa en Google)
-visuales: "pexels"
+visuales: "gemini"   # si una imagen falla y hay PEXELS_API_KEY, usa Pexels de respaldo
 
 # ===== Modelos de Google (Gemini API) =====
 # Si Google cambia los nombres, ejecuta: python tools/listar_modelos.py
@@ -49,7 +49,7 @@ voz:
 tiktok:
   # "directo"  -> publica en el perfil
   # "borrador" -> lo manda a tu bandeja de TikTok para que lo publiques tú (revisión manual)
-  modo: "directo"
+  modo: "borrador"   # te llega a la bandeja de TikTok para revisarlo y publicarlo tú
   # Mientras la app NO esté auditada por TikTok, solo se permite SELF_ONLY (privado).
   # Después de la auditoría cambia a PUBLIC_TO_EVERYONE.
   privacidad: "SELF_ONLY"

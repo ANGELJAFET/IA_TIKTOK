@@ -14,7 +14,7 @@ from pathlib import Path
 import yaml
 from google import genai
 
-from pipeline import guion, imagenes, montaje, pexels, tiktok, voz
+from pipeline import analitica, guion, imagenes, montaje, pexels, tiktok, voz
 
 RAIZ = Path(__file__).parent
 HISTORIAL = RAIZ / "data" / "historial.json"
@@ -50,13 +50,31 @@ def main():
     trabajo = RAIZ / "salida" / sello
     trabajo.mkdir(parents=True, exist_ok=True)
 
+    if not args.solo_generar and not os.environ.get("TIKTOK_REFRESH_TOKEN"):
+        print("▶ TikTok aún no está configurado (falta TIKTOK_REFRESH_TOKEN): solo se genera el video")
+        args.solo_generar = True
+
+    tok = None
+    if os.environ.get("TIKTOK_REFRESH_TOKEN"):
+        tok = tiktok.refrescar_token(os.environ["TIKTOK_CLIENT_KEY"], os.environ["TIKTOK_CLIENT_SECRET"],
+                                     os.environ["TIKTOK_REFRESH_TOKEN"])
+        if tok.get("refresh_token") and tok["refresh_token"] != os.environ["TIKTOK_REFRESH_TOKEN"]:
+            (RAIZ / ".nuevo_refresh_token").write_text(tok["refresh_token"])
+
     # 1. Serie: continúa la actual o planea una nueva (7 partes, 1 por día)
     plan = json.loads(SERIE.read_text(encoding="utf-8")) if SERIE.exists() else None
     if args.tema or not plan or plan["parte_actual"] >= len(plan["partes"]):
         tema = args.tema or siguiente_tema_en_cola()
         print(f"▶ Nueva serie ({'tema: ' + tema if tema else 'tema automático'})")
         series_previas = list(dict.fromkeys(h.get("serie", h["tema"]) for h in historial))
-        plan = guion.planear_serie(client, cfg, tema, series_previas)
+        aprendizaje = ""
+        if tok:
+            try:
+                print("▶ Revisando qué series gustaron más")
+                aprendizaje = analitica.actualizar(tok["access_token"], historial, RAIZ / "data" / "rendimiento.json")
+            except Exception as e:
+                print(f"  (sin estadísticas: {e})")
+        plan = guion.planear_serie(client, cfg, tema, series_previas, aprendizaje)
         print(f"  serie: {plan['serie']} ({len(plan['partes'])} partes)")
     print(f"▶ Guion parte {plan['parte_actual'] + 1}/{len(plan['partes'])}")
     g = guion.generar_parte(client, cfg, plan)
@@ -68,10 +86,16 @@ def main():
     escenas, usados = [], set()
     for i, e in enumerate(g["escenas"]):
         print(f"▶ Escena {i + 1}/{len(g['escenas'])} ({fuente})")
+        consultas = [e.get("busqueda", ""), " ".join(e.get("busqueda", "").split()[:2]), plan["serie"]]
         if fuente == "gemini":
-            img, tipo = imagenes.generar_imagen(client, cfg["modelos"]["imagen"], e["imagen"], trabajo / f"img_{i:02d}"), "imagen"
+            try:
+                img, tipo = imagenes.generar_imagen(client, cfg["modelos"]["imagen"], e["imagen"], trabajo / f"img_{i:02d}"), "imagen"
+            except RuntimeError as err:
+                if not os.environ.get("PEXELS_API_KEY"):
+                    raise
+                print(f"  Gemini falló ({str(err)[:80]}...); usando Pexels")
+                img, tipo = pexels.visual_para_escena(consultas, trabajo / f"vis_{i:02d}", usados)
         else:
-            consultas = [e.get("busqueda", ""), " ".join(e.get("busqueda", "").split()[:2]), plan["serie"]]
             img, tipo = pexels.visual_para_escena(consultas, trabajo / f"vis_{i:02d}", usados)
         mp3 = trabajo / f"voz_{i:02d}.mp3"
         palabras = voz.narrar(e["narracion"], cfg["voz"]["nombre"], cfg["voz"]["velocidad"], mp3)
@@ -88,20 +112,12 @@ def main():
     registro = {"fecha": sello, "serie": plan["serie"], "parte": g["parte"], "tema": g["tema"],
                 "titulo": titulo, "duracion": round(dur, 1)}
 
-    if not args.solo_generar and not os.environ.get("TIKTOK_REFRESH_TOKEN"):
-        print("▶ TikTok aún no está configurado (falta TIKTOK_REFRESH_TOKEN): solo se genera el video")
-        args.solo_generar = True
-
     if args.solo_generar:
         print("▶ Modo prueba: no se sube a TikTok")
         registro["estado"] = "solo_generado"
     else:
         # 4. TikTok
-        print("▶ Subiendo a TikTok")
-        tok = tiktok.refrescar_token(os.environ["TIKTOK_CLIENT_KEY"], os.environ["TIKTOK_CLIENT_SECRET"],
-                                     os.environ["TIKTOK_REFRESH_TOKEN"])
-        if tok.get("refresh_token") and tok["refresh_token"] != os.environ["TIKTOK_REFRESH_TOKEN"]:
-            (RAIZ / ".nuevo_refresh_token").write_text(tok["refresh_token"])
+        print(f"▶ Subiendo a TikTok (modo {cfg['tiktok']['modo']})")
         try:
             pid = tiktok.subir(tok["access_token"], final, titulo, cfg["tiktok"], dur)
             estado = tiktok.esperar_estado(tok["access_token"], pid)
@@ -110,6 +126,13 @@ def main():
         except tiktok.TikTokError as e:
             registro.update(estado="error", error=str(e))
             print(f"  ❌ {e}")
+
+    # Resumen visible en GitHub (pestaña Actions) con el texto listo para copiar
+    if os.environ.get("GITHUB_STEP_SUMMARY"):
+        with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+            f.write(f"## {g['tema']}\n\n**Estado:** {registro.get('estado')} · **Duración:** {dur:.0f}s\n\n"
+                    f"**Descripción para TikTok (cópiala al publicar el borrador):**\n\n```\n{titulo}\n```\n\n"
+                    "El video completo está abajo en *Artifacts*.\n")
 
     # La serie solo avanza cuando el video se publicó (las pruebas no gastan partes)
     if registro.get("estado") not in ("error", "solo_generado"):

@@ -27,7 +27,7 @@ TikTok exige un sitio web, una política de privacidad y unos términos.
 1. Entra a **developers.tiktok.com** con la cuenta del canal → **Manage apps → Connect an app**.
 2. Llena: nombre, ícono, categoría y las URLs de Terms, Privacy y Website del Paso 3.
 3. **Add products:** *Login Kit* y *Content Posting API* (activa **Direct Post**).
-4. **Scopes:** `user.info.basic`, `video.publish`, `video.upload`.
+4. **Scopes:** `user.info.basic`, `video.publish`, `video.upload`, `video.list` (este último para leer tus estadísticas).
 5. **Redirect URI** (Login Kit → Web): `https://TU-SITIO.vercel.app/callback.html`
 6. Copia el **Client key** y el **Client secret**.
 7. En **Sandbox**, agrega la cuenta del canal como *target user* para poder probar ya.
@@ -76,6 +76,18 @@ Cuando la aprueben, en `config.yaml` cambia `privacidad: "PUBLIC_TO_EVERYONE"`.
 > Mientras tanto puedes usar `modo: "borrador"`: el video llega a tu bandeja de TikTok y tú lo publicas con un toque. Así también agregas un sonido en tendencia.
 
 ---
+
+## Cómo revisas cada video antes de publicarlo
+Con `modo: "borrador"` (configuración actual) cada video llega a tu **bandeja de TikTok** como borrador:
+1. TikTok te manda una notificación. Abres el borrador y ves el video completo.
+2. Si te gusta: pega la descripción (la encuentras en GitHub → Actions → la ejecución del día), activa **"AI-generated content"**, puedes agregar un sonido en tendencia y publica.
+3. Si no te gusta: lo descartas y la serie sigue igual al día siguiente.
+Cuando confíes en la calidad, cambia a `modo: "directo"` y se publica solo.
+
+## Cómo aprende qué le gusta a tu público
+Antes de empezar cada serie nueva, el pipeline lee las vistas, likes, comentarios y compartidos de tus videos,
+los agrupa por serie y le dice a la IA cuáles funcionaron mejor y peor para que la siguiente serie se parezca a las ganadoras.
+El ranking queda en `data/rendimiento.json`. Necesita el permiso `video.list` en tu app de TikTok.
 
 ## Personalizar
 - **Nicho, voz, número de escenas:** `config.yaml`

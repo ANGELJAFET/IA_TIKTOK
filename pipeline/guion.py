@@ -20,6 +20,7 @@ Rules:
 - Define ONE visual style that all parts will share so the series looks consistent.
 
 Do NOT repeat these previous series: {historial}
+{aprendizaje}
 
 Return ONLY JSON:
 {{
@@ -76,13 +77,14 @@ def _pedir_json(client, modelo: str, prompt: str, validar) -> dict:
     raise RuntimeError("Gemini no devolvió una respuesta válida")
 
 
-def planear_serie(client: genai.Client, cfg: dict, tema: str | None, historial: list[str]) -> dict:
+def planear_serie(client: genai.Client, cfg: dict, tema: str | None, historial: list[str],
+                  aprendizaje: str = "") -> dict:
     canal = cfg["canal"]
     partes = cfg["serie"]["partes"]
     tema = tema or f"pick a fresh, specific and surprising topic within: {canal['nicho']}"
     prompt = PROMPT_SERIE.format(
         nicho=canal["nicho"], publico=canal["publico"], idioma=canal["idioma"], partes=partes,
-        tema=tema, historial="; ".join(historial[-60:]) or "none",
+        tema=tema, historial="; ".join(historial[-60:]) or "none", aprendizaje=aprendizaje,
     )
     plan = _pedir_json(client, cfg["modelos"]["texto"], prompt,
                        lambda d: len(d.get("partes", [])) >= partes and d.get("serie"))

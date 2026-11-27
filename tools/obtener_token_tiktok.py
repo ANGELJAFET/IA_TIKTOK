@@ -18,7 +18,7 @@ redirect = os.environ["TIKTOK_REDIRECT_URI"]
 
 url = "https://www.tiktok.com/v2/auth/authorize/?" + urllib.parse.urlencode({
     "client_key": key,
-    "scope": "user.info.basic,video.publish,video.upload",
+    "scope": "user.info.basic,video.publish,video.upload,video.list",
     "response_type": "code",
     "redirect_uri": redirect,
     "state": secrets.token_urlsafe(16),
