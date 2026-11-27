@@ -1,8 +1,8 @@
-"""Pipeline completo: tema → guion → imágenes → voz → montaje → TikTok.
+"""Pipeline completo: serie de 7 partes → guion → imágenes → voz → montaje → TikTok.
 
     python main.py                 # genera y publica
     python main.py --solo-generar  # genera el video pero NO lo sube (para probar)
-    python main.py --tema "Why octopuses have three hearts"
+    python main.py --tema "Betrayals that changed history"   # empieza una serie nueva con ese tema
 """
 import argparse
 import json
@@ -19,6 +19,7 @@ from pipeline import guion, imagenes, montaje, tiktok, voz
 RAIZ = Path(__file__).parent
 HISTORIAL = RAIZ / "data" / "historial.json"
 TEMAS = RAIZ / "data" / "temas.txt"
+SERIE = RAIZ / "data" / "serie_actual.json"
 
 
 def siguiente_tema_en_cola() -> str | None:
@@ -49,12 +50,18 @@ def main():
     trabajo = RAIZ / "salida" / sello
     trabajo.mkdir(parents=True, exist_ok=True)
 
-    # 1. Guion
-    tema = args.tema or siguiente_tema_en_cola()
-    print(f"▶ Guion ({'tema dado: ' + tema if tema else 'tema automático'})")
-    g = guion.generar_guion(client, cfg, tema, [h["tema"] for h in historial])
+    # 1. Serie: continúa la actual o planea una nueva (7 partes, 1 por día)
+    plan = json.loads(SERIE.read_text(encoding="utf-8")) if SERIE.exists() else None
+    if args.tema or not plan or plan["parte_actual"] >= len(plan["partes"]):
+        tema = args.tema or siguiente_tema_en_cola()
+        print(f"▶ Nueva serie ({'tema: ' + tema if tema else 'tema automático'})")
+        series_previas = list(dict.fromkeys(h.get("serie", h["tema"]) for h in historial))
+        plan = guion.planear_serie(client, cfg, tema, series_previas)
+        print(f"  serie: {plan['serie']} ({len(plan['partes'])} partes)")
+    print(f"▶ Guion parte {plan['parte_actual'] + 1}/{len(plan['partes'])}")
+    g = guion.generar_parte(client, cfg, plan)
     (trabajo / "guion.json").write_text(json.dumps(g, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"  tema: {g['tema']}")
+    print(f"  {g['tema']}")
 
     # 2. Imágenes + voz por escena
     escenas = []
@@ -73,7 +80,8 @@ def main():
 
     tags = list(dict.fromkeys(g.get("hashtags", []) + cfg["canal"]["hashtags_base"]))
     titulo = f"{g['titulo']} {' '.join(tags)}"
-    registro = {"fecha": sello, "tema": g["tema"], "titulo": titulo, "duracion": round(dur, 1)}
+    registro = {"fecha": sello, "serie": plan["serie"], "parte": g["parte"], "tema": g["tema"],
+                "titulo": titulo, "duracion": round(dur, 1)}
 
     if not args.solo_generar and not os.environ.get("TIKTOK_REFRESH_TOKEN"):
         print("▶ TikTok aún no está configurado (falta TIKTOK_REFRESH_TOKEN): solo se genera el video")
@@ -97,6 +105,12 @@ def main():
         except tiktok.TikTokError as e:
             registro.update(estado="error", error=str(e))
             print(f"  ❌ {e}")
+
+    # La serie solo avanza cuando el video se publicó (las pruebas no gastan partes)
+    if registro.get("estado") not in ("error", "solo_generado"):
+        plan["parte_actual"] += 1
+        plan["resumenes"].append(g.get("resumen", ""))
+        SERIE.write_text(json.dumps(plan, indent=2, ensure_ascii=False), encoding="utf-8")
 
     historial.append(registro)
     HISTORIAL.write_text(json.dumps(historial, indent=2, ensure_ascii=False), encoding="utf-8")

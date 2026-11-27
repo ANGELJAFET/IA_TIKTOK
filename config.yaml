@@ -7,6 +7,12 @@ canal:
   estilo_visual: "cinematic, photorealistic, dramatic lighting, high detail, vertical composition"
   hashtags_base: ["#facts", "#didyouknow", "#learnontiktok", "#mindblown"]
 
+# ===== Series =====
+# Cada tema se convierte en una serie de N partes (1 video por día).
+# Pon 1 si quieres videos sueltos.
+serie:
+  partes: 7
+
 # ===== Modelos de Google (Gemini API) =====
 # Si Google cambia los nombres, ejecuta: python tools/listar_modelos.py
 modelos:
