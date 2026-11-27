@@ -19,8 +19,8 @@ Genera y publica TikToks de datos curiosos en inglés (público de EE. UU.) todo
 
 ## Paso 3 — Sitio web para la app de TikTok (Vercel)
 TikTok exige un sitio web, una política de privacidad y unos términos.
-1. En `web/*.html` cambia `CONTACT_EMAIL` por tu correo y, si quieres, el nombre "Daily Facts Studio".
-2. En Vercel: **Add New → Project →** el mismo repo, con **Root Directory = `web`**. Haz el deploy.
+1. En `docs/*.html` cambia `CONTACT_EMAIL` por tu correo y, si quieres, el nombre "Daily Facts Studio".
+2. En Vercel: **Add New → Project →** el mismo repo, con **Root Directory = `docs`**. Haz el deploy.
 3. Te queda una dirección como `https://tiktok-ia-xxx.vercel.app`. Ahí estarán `/privacy.html`, `/terms.html` y `/callback.html`.
 
 ## Paso 4 — App de desarrollador de TikTok
