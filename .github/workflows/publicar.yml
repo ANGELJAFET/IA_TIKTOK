@@ -1,0 +1,83 @@
+name: Publicar TikTok
+
+on:
+  schedule:
+    # Hora UTC. 00:47 UTC = 7:47 pm hora del Este (EE.UU.) = 6:47 pm Honduras.
+    # Para 2 videos al día agrega otra línea, p. ej. "23 17 * * *" (12:23 pm Este).
+    - cron: "47 0 * * *"
+  workflow_dispatch:
+    inputs:
+      solo_generar:
+        description: "Solo generar el video (no subir a TikTok)"
+        type: boolean
+        default: true
+      tema:
+        description: "Tema específico (opcional)"
+        type: string
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publicar-tiktok
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar FFmpeg y fuentes
+        run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg fonts-dejavu-core
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Ejecutar pipeline
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
+          TEMA: ${{ inputs.tema }}
+        run: |
+          ARGS=""
+          if [ "${{ inputs.solo_generar }}" = "true" ]; then ARGS="--solo-generar"; fi
+          if [ -n "$TEMA" ]; then python main.py $ARGS --tema "$TEMA"; else python main.py $ARGS; fi
+
+      - name: Guardar video como descarga
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-${{ github.run_number }}
+          path: |
+            salida/*/final.mp4
+            salida/*/guion.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Renovar token de TikTok si cambió
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          if [ -f .nuevo_refresh_token ] && [ -n "$GH_TOKEN" ]; then
+            gh secret set TIKTOK_REFRESH_TOKEN --repo "${{ github.repository }}" < .nuevo_refresh_token
+            echo "Token renovado"
+          fi
+
+      - name: Guardar historial
+        if: always()
+        run: |
+          git config user.name "tiktok-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/historial.json data/temas.txt
+          git diff --cached --quiet || (git commit -m "Historial: video ${{ github.run_number }}" && git push)

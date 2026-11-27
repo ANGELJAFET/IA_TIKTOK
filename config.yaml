@@ -1,0 +1,40 @@
+# ===== Configuración del canal =====
+# Cambia el nicho aquí y el resto del pipeline se adapta.
+canal:
+  nicho: "mind-blowing facts (science, history, nature, the human body, space)"
+  idioma: "English (US)"
+  publico: "United States, ages 18-35"
+  estilo_visual: "cinematic, photorealistic, dramatic lighting, high detail, vertical composition"
+  hashtags_base: ["#facts", "#didyouknow", "#learnontiktok", "#mindblown"]
+
+# ===== Modelos de Google (Gemini API) =====
+# Si Google cambia los nombres, ejecuta: python tools/listar_modelos.py
+modelos:
+  texto: "gemini-3.1-flash-lite"
+  imagen: "gemini-3.1-flash-lite-image"
+
+# ===== Video =====
+video:
+  escenas: 5              # imágenes por video (≈ $0.034 c/u)
+  palabras_objetivo: 75   # ≈ 30 segundos de narración
+  ancho: 1080
+  alto: 1920
+  fps: 30
+  volumen_musica: 0.12    # pon archivos .mp3 sin copyright en assets/musica/
+
+# ===== Voz (edge-tts, gratis) =====
+voz:
+  nombre: "en-US-AndrewNeural"   # otras: en-US-GuyNeural, en-US-AriaNeural, en-US-ChristopherNeural
+  velocidad: "+8%"
+
+# ===== TikTok =====
+tiktok:
+  # "directo"  -> publica en el perfil
+  # "borrador" -> lo manda a tu bandeja de TikTok para que lo publiques tú (revisión manual)
+  modo: "directo"
+  # Mientras la app NO esté auditada por TikTok, solo se permite SELF_ONLY (privado).
+  # Después de la auditoría cambia a PUBLIC_TO_EVERYONE.
+  privacidad: "SELF_ONLY"
+  desactivar_comentarios: false
+  desactivar_duo: false
+  desactivar_stitch: false

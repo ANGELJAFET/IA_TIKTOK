@@ -1,0 +1,5 @@
+# Cola de temas (opcional). Una idea por línea; el pipeline usa la primera y la borra.
+# Si está vacía, Gemini inventa el tema solo sin repetir los anteriores.
+Why octopuses have three hearts and blue blood
+The town in Alaska where everyone lives in one building
+What would happen if the Moon disappeared

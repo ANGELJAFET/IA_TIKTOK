@@ -1,0 +1,2 @@
+Pon aquí archivos .mp3 de música SIN copyright (por ejemplo de la YouTube Audio Library o Pixabay Music).
+El pipeline elige uno al azar en cada video. Si no hay ninguno, el video sale solo con la voz.
