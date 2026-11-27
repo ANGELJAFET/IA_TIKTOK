@@ -18,7 +18,7 @@ cta:
   comentar_parte: true   # "Comment PART 2 if you want it" -> más comentarios = más alcance
   # Cuando tengas Ko-fi/Buy Me a Coffee en tu bio (TikTok pide 1,000 seguidores para poner enlaces),
   # escribe aquí la frase, p. ej.: "Want more series? Support the channel, link in bio."
-  apoyo: ""
+  apoyo: "If you enjoy these, consider supporting the channel. Link in bio."
 
 # ===== Modelos de Google (Gemini API) =====
 # Si Google cambia los nombres, ejecuta: python tools/listar_modelos.py
@@ -28,8 +28,8 @@ modelos:
 
 # ===== Video =====
 video:
-  escenas: 5              # imágenes por video (≈ $0.034 c/u)
-  palabras_objetivo: 75   # ≈ 30 segundos de narración
+  escenas: 4              # imágenes por video (≈ $0.034 c/u)
+  palabras_objetivo: 50   # ≈ 20 segundos de narración
   ancho: 1080
   alto: 1920
   fps: 30
