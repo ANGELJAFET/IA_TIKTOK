@@ -13,6 +13,13 @@ canal:
 serie:
   partes: 7
 
+# ===== Llamado a la acción al final de cada video =====
+cta:
+  comentar_parte: true   # "Comment PART 2 if you want it" -> más comentarios = más alcance
+  # Cuando tengas Ko-fi/Buy Me a Coffee en tu bio (TikTok pide 1,000 seguidores para poner enlaces),
+  # escribe aquí la frase, p. ej.: "Want more series? Support the channel, link in bio."
+  apoyo: ""
+
 # ===== Modelos de Google (Gemini API) =====
 # Si Google cambia los nombres, ejecuta: python tools/listar_modelos.py
 modelos:

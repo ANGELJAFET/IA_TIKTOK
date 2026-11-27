@@ -92,6 +92,19 @@ def planear_serie(client: genai.Client, cfg: dict, tema: str | None, historial: 
     return plan
 
 
+def _cierre(cfg: dict, n: int, ultima: bool) -> str:
+    cta = cfg.get("cta", {})
+    if ultima:
+        txt = "Last scene wraps up the whole series and says: \"Follow for the next series.\""
+    else:
+        txt = f"Last scene teases part {n + 1} and says: \"Follow so you don't miss part {n + 1} tomorrow.\""
+        if cta.get("comentar_parte"):
+            txt += f" Also ask viewers to comment \"PART {n + 1}\" if they want it."
+    if cta.get("apoyo"):
+        txt += f" End with this exact short line: \"{cta['apoyo']}\""
+    return txt
+
+
 def generar_parte(client: genai.Client, cfg: dict, plan: dict) -> dict:
     v = cfg["video"]
     n = plan["parte_actual"] + 1
@@ -105,8 +118,7 @@ def generar_parte(client: genai.Client, cfg: dict, plan: dict) -> dict:
         siguiente="none — this is the finale" if ultima else plan["partes"][n]["titulo"],
         escenas=v["escenas"], palabras=v["palabras_objetivo"], estilo=plan["estilo_visual"],
         recap="" if n == 1 else " Scene 1 may briefly connect to the previous part in a few words.",
-        cierre=("Last scene wraps up the whole series and says: \"Follow for the next series.\""
-                if ultima else f"Last scene teases part {n + 1} and says: \"Follow so you don't miss part {n + 1} tomorrow.\""),
+        cierre=_cierre(cfg, n, ultima),
     )
     g = _pedir_json(client, cfg["modelos"]["texto"], prompt, lambda d: len(d.get("escenas", [])) >= 2)
     g["escenas"] = g["escenas"][: v["escenas"]]
