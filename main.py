@@ -75,6 +75,10 @@ def main():
     titulo = f"{g['titulo']} {' '.join(tags)}"
     registro = {"fecha": sello, "tema": g["tema"], "titulo": titulo, "duracion": round(dur, 1)}
 
+    if not args.solo_generar and not os.environ.get("TIKTOK_REFRESH_TOKEN"):
+        print("▶ TikTok aún no está configurado (falta TIKTOK_REFRESH_TOKEN): solo se genera el video")
+        args.solo_generar = True
+
     if args.solo_generar:
         print("▶ Modo prueba: no se sube a TikTok")
         registro["estado"] = "solo_generado"
