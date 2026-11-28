@@ -59,6 +59,10 @@ def main():
     trabajo = RAIZ / "salida" / sello
     trabajo.mkdir(parents=True, exist_ok=True)
 
+    if not args.solo_generar and not cfg["tiktok"].get("publicar_automatico", True):
+        print("▶ Publicación automática desactivada en config.yaml: solo se genera el video (llega por correo)")
+        args.solo_generar = True
+
     if not args.solo_generar and not os.environ.get("TIKTOK_REFRESH_TOKEN"):
         print("▶ TikTok aún no está configurado (falta TIKTOK_REFRESH_TOKEN): solo se genera el video")
         args.solo_generar = True
@@ -177,7 +181,9 @@ def main():
                     "El video completo está abajo en *Artifacts*.\n")
 
     # La serie solo avanza cuando el video se publicó (las pruebas no gastan partes)
-    if registro.get("estado") not in ("error", "solo_generado"):
+    avanzar = registro.get("estado") not in ("error", "solo_generado") or (
+        registro.get("estado") == "solo_generado" and not cfg["tiktok"].get("publicar_automatico", True))
+    if avanzar:
         plan["parte_actual"] += 1
         plan["resumenes"].append(g.get("resumen", ""))
         SERIE.write_text(json.dumps(plan, indent=2, ensure_ascii=False), encoding="utf-8")

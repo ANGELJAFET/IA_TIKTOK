@@ -47,6 +47,9 @@ voz:
 
 # ===== TikTok =====
 tiktok:
+  # false = cada día solo GENERA el video y te lo manda por correo para que lo subas tú.
+  # Ponlo en true cuando TikTok apruebe la app (y cambia privacidad a PUBLIC_TO_EVERYONE).
+  publicar_automatico: false
   # "directo"  -> publica en el perfil
   # "borrador" -> lo manda a tu bandeja de TikTok para que lo publiques tú (revisión manual)
   modo: "directo"   # se publica en tu perfil; mientras la app no esté aprobada sale en PRIVADO (solo tú)

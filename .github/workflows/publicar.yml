@@ -73,6 +73,15 @@ jobs:
           if [ "${{ inputs.resubir_ultimo }}" = "true" ]; then python main.py --resubir anterior
           elif [ -n "$TEMA" ]; then python main.py $ARGS --tema "$TEMA"; else python main.py $ARGS; fi
 
+      - name: Enviar video por correo
+        if: always() && !inputs.resubir_ultimo
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ESTADO_JOB: ${{ job.status }}
+          URL_EJECUCION: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python tools/enviar_correo.py
+
       - name: Guardar video como descarga
         if: always()
         uses: actions/upload-artifact@v4
