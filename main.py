@@ -23,17 +23,24 @@ SERIE = RAIZ / "data" / "serie_actual.json"
 
 
 def siguiente_tema_en_cola() -> str | None:
-    """Toma la primera línea de data/temas.txt (si hay) y la quita de la cola."""
+    """Mira la primera línea de data/temas.txt (si hay), sin quitarla todavía."""
     if not TEMAS.exists():
         return None
     lineas = TEMAS.read_text(encoding="utf-8").splitlines()
     validas = [l for l in lineas if l.strip() and not l.lstrip().startswith("#")]
     if not validas:
         return None
-    tema = validas[0].strip()
-    lineas.remove(validas[0])
-    TEMAS.write_text("\n".join(lineas) + "\n", encoding="utf-8")
-    return tema
+    return validas[0].strip()
+
+
+def quitar_de_cola(tema: str):
+    """Saca el tema de la cola solo cuando su serie ya arrancó de verdad."""
+    if not tema or not TEMAS.exists():
+        return
+    lineas = TEMAS.read_text(encoding="utf-8").splitlines()
+    if tema in lineas:
+        lineas.remove(tema)
+        TEMAS.write_text("\n".join(lineas) + "\n", encoding="utf-8")
 
 
 def main():
@@ -63,8 +70,10 @@ def main():
 
     # 1. Serie: continúa la actual o planea una nueva (7 partes, 1 por día)
     plan = json.loads(SERIE.read_text(encoding="utf-8")) if SERIE.exists() else None
+    tema_de_cola = None
     if args.tema or not plan or plan["parte_actual"] >= len(plan["partes"]):
-        tema = args.tema or siguiente_tema_en_cola()
+        tema_de_cola = None if args.tema else siguiente_tema_en_cola()
+        tema = args.tema or tema_de_cola
         print(f"▶ Nueva serie ({'tema: ' + tema if tema else 'tema automático'})")
         series_previas = list(dict.fromkeys(h.get("serie", h["tema"]) for h in historial))
         aprendizaje = ""
@@ -139,6 +148,7 @@ def main():
         plan["parte_actual"] += 1
         plan["resumenes"].append(g.get("resumen", ""))
         SERIE.write_text(json.dumps(plan, indent=2, ensure_ascii=False), encoding="utf-8")
+        quitar_de_cola(tema_de_cola)
 
     historial.append(registro)
     HISTORIAL.write_text(json.dumps(historial, indent=2, ensure_ascii=False), encoding="utf-8")
