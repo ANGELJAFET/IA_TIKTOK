@@ -15,9 +15,14 @@ on:
         description: "Tema específico (opcional)"
         type: string
         required: false
+      resubir_ultimo:
+        description: "Resubir el último video generado (sin generar uno nuevo)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
   group: publicar-tiktok
@@ -41,6 +46,19 @@ jobs:
       - name: Instalar dependencias
         run: pip install -r requirements.txt
 
+      - name: Descargar último video generado
+        if: ${{ inputs.resubir_ultimo }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for id in $(gh run list -R "${{ github.repository }}" -w publicar.yml -L 20 --json databaseId --jq '.[].databaseId'); do
+            if gh run download "$id" -R "${{ github.repository }}" -D anterior 2>/dev/null && find anterior -name final.mp4 | grep -q .; then
+              echo "Usando el video de la ejecución $id"; exit 0
+            fi
+            rm -rf anterior
+          done
+          echo "::error::No encontré un video anterior guardado"; exit 1
+
       - name: Ejecutar pipeline
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -52,7 +70,8 @@ jobs:
         run: |
           ARGS=""
           if [ "${{ inputs.solo_generar }}" = "true" ]; then ARGS="--solo-generar"; fi
-          if [ -n "$TEMA" ]; then python main.py $ARGS --tema "$TEMA"; else python main.py $ARGS; fi
+          if [ "${{ inputs.resubir_ultimo }}" = "true" ]; then python main.py --resubir anterior
+          elif [ -n "$TEMA" ]; then python main.py $ARGS --tema "$TEMA"; else python main.py $ARGS; fi
 
       - name: Guardar video como descarga
         if: always()

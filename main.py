@@ -48,6 +48,7 @@ def main():
     ap.add_argument("--solo-generar", action="store_true")
     ap.add_argument("--tema")
     ap.add_argument("--solo-estadisticas", action="store_true", help="solo actualiza los datos del panel")
+    ap.add_argument("--resubir", help="carpeta con final.mp4 y guion.json de un intento anterior: lo sube sin generar")
     args = ap.parse_args()
 
     cfg = yaml.safe_load((RAIZ / "config.yaml").read_text(encoding="utf-8"))
@@ -77,6 +78,28 @@ def main():
         except Exception as e:
             print(f"  (sin estadísticas: {e})")
     if args.solo_estadisticas:
+        return
+
+    if args.resubir:
+        carpeta = Path(args.resubir)
+        final = next(carpeta.rglob("final.mp4"))
+        g = json.loads(next(carpeta.rglob("guion.json")).read_text(encoding="utf-8"))
+        dur = montaje.duracion(final)
+        tags = list(dict.fromkeys(g.get("hashtags", []) + cfg["canal"]["hashtags_base"]))
+        titulo = f"{g['titulo']} {' '.join(tags)}"
+        print(f"▶ Resubiendo video anterior: {g.get('tema')} ({dur:.1f}s, modo {cfg['tiktok']['modo']})")
+        pid = tiktok.subir(tok["access_token"], final, titulo, cfg["tiktok"], dur)
+        estado = tiktok.esperar_estado(tok["access_token"], pid)
+        print(f"  ✅ {estado} (publish_id {pid})")
+        plan = json.loads(SERIE.read_text(encoding="utf-8")) if SERIE.exists() else None
+        if plan and g.get("parte") == plan["parte_actual"] + 1 and g.get("tema", "").startswith(plan["serie"]):
+            plan["parte_actual"] += 1
+            plan["resumenes"].append(g.get("resumen", ""))
+            SERIE.write_text(json.dumps(plan, indent=2, ensure_ascii=False), encoding="utf-8")
+        historial.append({"fecha": sello, "serie": g.get("tema", "").split(" (part")[0], "parte": g.get("parte"),
+                          "tema": g.get("tema"), "titulo": titulo, "duracion": round(dur, 1),
+                          "publish_id": pid, "estado": estado, "resubido": True})
+        HISTORIAL.write_text(json.dumps(historial, indent=2, ensure_ascii=False), encoding="utf-8")
         return
 
     # 1. Serie: continúa la actual o planea una nueva (7 partes, 1 por día)
