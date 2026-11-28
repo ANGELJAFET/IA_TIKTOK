@@ -15,7 +15,7 @@ Crea una serie de {partes} partes (un video por día). Cada parte debe entenders
 Tema de la serie: {tema}
 
 Reglas:
-- Los personajes SIEMPRE son frutas con personalidad (ej. el Mango galán, la Piña chismosa, el Limón amargado). Define un elenco fijo de 3 a 5 frutas para toda la serie.
+- Los personajes SIEMPRE son frutas con personalidad (ej. el Mango galán, la Piña chismosa, el Limón amargado). Define un elenco fijo de 3 a 5 frutas para toda la serie, cada una con "genero" "M" o "F".
 - Historias de drama, comedia, chisme y traiciones, al estilo de las novelas de frutas virales.
 - Puedes hacer guiños y comparaciones con {referencias} SOLO como humor de cultura pop (ej. "se puso más intenso que concierto de Bad Bunny").
   NUNCA inventes frases, delitos, escándalos ni acusaciones atribuidas a personas reales; nada de apoyar o atacar partidos, candidatos o elecciones; nada de odio ni burlas por nacionalidad.
@@ -27,7 +27,7 @@ No repitas estas series anteriores: {historial}
 Devuelve SOLO JSON:
 {{
   "serie": "título pegajoso de la serie en español",
-  "elenco": [{{"fruta": "Mango", "nombre": "Don Mango", "personalidad": "galán presumido", "aspecto": "mango maduro con bigote y lentes de sol"}}],
+  "elenco": [{{"fruta": "Mango", "nombre": "Don Mango", "genero": "M", "personalidad": "galán presumido", "aspecto": "mango maduro con bigote y lentes de sol"}}],
   "estilo_visual": "una oración con el estilo visual común",
   "hashtags": ["#tag1", "#tag2"],
   "partes": [{{"titulo": "título de la parte", "enfoque": "qué pasa en esta parte, 1-2 oraciones"}}]
@@ -45,7 +45,9 @@ Adelanto de la siguiente parte: {siguiente}
 Reglas:
 - Exactamente {escenas} escenas. Narración total de AL MENOS {palabras} palabras (el video debe durar más de 1 minuto), unas 30 palabras por escena.
 - La escena 1 empieza con "Parte {n}." y luego un gancho que detenga el scroll en menos de 14 palabras.{recap}
-- Habla como un compa contando un chisme. TERMINA CADA ORACIÓN con una de estas muletillas, alternándolas: {muletillas}.
+- Cada escena tiene "lineas": un NARRADOR (un compa contando el chisme) y DIÁLOGOS de los personajes del elenco hablando en primera persona.
+  Usa en "quien" exactamente "Narrador" o el "nombre" de un personaje del elenco. Mezcla narración y diálogo; que los personajes discutan, se reclamen y se rían.
+- TERMINA CADA ORACIÓN (de narrador y personajes) con una de estas muletillas, alternándolas: {muletillas}.
 - Puedes hacer guiños de humor a {referencias} (comparaciones, referencias a canciones o frases famosas reales),
   pero NUNCA inventes frases, delitos o escándalos de personas reales, ni apoyes o ataques partidos o candidatos.
 - {cierre}
@@ -57,7 +59,7 @@ Devuelve SOLO JSON:
 {{
   "titulo": "descripción para TikTok, máx. 110 caracteres, con 1 emoji (sin el número de parte)",
   "resumen": "una oración con lo que pasó en esta parte",
-  "escenas": [{{"narracion": "...", "imagen": "...", "busqueda": "..."}}]
+  "escenas": [{{"lineas": [{{"quien": "Narrador", "texto": "..."}}, {{"quien": "Don Mango", "texto": "..."}}], "imagen": "...", "busqueda": "..."}}]
 }}"""
 
 
@@ -113,6 +115,8 @@ def planear_serie(client: genai.Client, cfg: dict, tema: str | None, historial: 
                        lambda d: len(d.get("partes", [])) >= partes and d.get("serie"))
     plan["partes"] = plan["partes"][:partes]
     plan["estilo_visual"] = f"{plan.get('estilo_visual', '')} {canal['estilo_visual']}".strip()
+    from pipeline.voz import asignar_voces
+    plan["voces"] = asignar_voces(plan.get("elenco", []), cfg["voz"]["nombre"])
     plan["parte_actual"] = 0  # partes ya publicadas
     plan["resumenes"] = []
     return plan
@@ -150,10 +154,15 @@ def generar_parte(client: genai.Client, cfg: dict, plan: dict) -> dict:
         cierre=_cierre(cfg, n, ultima),
     )
     minimo = int(v["palabras_objetivo"] * 0.9)
-    palabras = lambda d: sum(len(e.get("narracion", "").split()) for e in d.get("escenas", []))
+    palabras = lambda d: sum(len((e.get("narracion") or " ".join(l.get("texto", "") for l in e.get("lineas", []))).split())
+                             for e in d.get("escenas", []))
     g = _pedir_json(client, cfg["modelos"]["texto"], prompt,
                     lambda d: len(d.get("escenas", [])) >= 2 and palabras(d) >= minimo)
     g["escenas"] = g["escenas"][: v["escenas"]]
+    for e in g["escenas"]:
+        if not e.get("lineas"):
+            e["lineas"] = [{"quien": "Narrador", "texto": e.get("narracion", "")}]
+        e["narracion"] = " ".join(l.get("texto", "") for l in e["lineas"])
     g["titulo"] = f"{plan['serie']} — Parte {n}/{total}: {g['titulo']}"
     g["hashtags"] = plan.get("hashtags", [])
     g["tema"] = f"{plan['serie']} (parte {n}/{total})"

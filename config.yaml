@@ -29,6 +29,15 @@ cta:
 # "gemini" -> imágenes generadas con IA (≈ $0.034 c/u, necesita facturación activa en Google)
 visuales: "gemini"   # si una imagen falla y hay PEXELS_API_KEY, usa Pexels de respaldo
 
+# ===== Animación (personajes que se mueven, con Veo de Google; se paga con los mismos créditos) =====
+# "imagenes" -> solo imágenes con zoom           (~$0.21 por video)
+# "mixto"    -> 2 escenas animadas, resto imagen  (~$0.70 por video)
+# "completo" -> todas las escenas animadas         (~$1.65 por video)
+animacion:
+  modo: "completo"
+  modelo: "auto"     # elige el Veo más barato disponible (Lite)
+  segundos: 8
+
 # ===== Modelos de Google (Gemini API) =====
 # Si Google cambia los nombres, ejecuta: python tools/listar_modelos.py
 modelos:
@@ -71,4 +80,4 @@ panel:
   # Creator Rewards suele pagar ~0.40–1.00 USD por 1000 vistas válidas, pero exige videos de +1 minuto
   # y 10,000 seguidores. Pon 0 si aún no estás en un programa de pago.
   usd_por_1000_vistas: 0.5
-  costo_por_video_usd: 0.21   # gasto aproximado en Gemini por video
+  costo_por_video_usd: 1.65   # gasto aproximado en Gemini por video

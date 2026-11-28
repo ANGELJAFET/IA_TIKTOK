@@ -14,7 +14,7 @@ from pathlib import Path
 import yaml
 from google import genai
 
-from pipeline import analitica, guion, imagenes, montaje, pexels, tiktok, voz
+from pipeline import analitica, animacion, guion, imagenes, montaje, pexels, tiktok, voz
 
 RAIZ = Path(__file__).parent
 HISTORIAL = RAIZ / "data" / "historial.json"
@@ -144,8 +144,25 @@ def main():
                     img, tipo = montaje.fondo_color(trabajo / f"fondo_{i:02d}.png", cfg["video"], i), "imagen"
         else:
             img, tipo = pexels.visual_para_escena(consultas, trabajo / f"vis_{i:02d}", usados)
+        # Animación con Veo (los personajes se mueven) a partir de la imagen de la escena
+        anim = cfg.get("animacion", {})
+        modo = anim.get("modo", "imagenes")
+        n_esc = len(g["escenas"])
+        animar_esta = modo == "completo" or (modo == "mixto" and i in {0, n_esc // 2 + 1})
+        if animar_esta and tipo == "imagen" and "fondo_" not in img.name:
+            try:
+                img = animacion.animar(client, anim.get("modelo", "auto"), img, e["imagen"],
+                                       trabajo / f"anim_{i:02d}.mp4", anim.get("segundos", 8))
+                tipo = "video"
+                print(f"  escena animada con Veo")
+            except Exception as err:
+                print(f"  Veo falló ({str(err)[:100]}); se usa la imagen con movimiento")
+
         mp3 = trabajo / f"voz_{i:02d}.mp3"
-        palabras = voz.narrar(e["narracion"], cfg["voz"]["nombre"], cfg["voz"]["velocidad"], mp3)
+        if not plan.get("voces"):
+            plan["voces"] = voz.asignar_voces(plan.get("elenco", []), cfg["voz"]["nombre"])
+        palabras = voz.narrar_escena(e.get("lineas") or [{"quien": "Narrador", "texto": e["narracion"]}],
+                                     plan["voces"], cfg["voz"]["nombre"], cfg["voz"]["velocidad"], mp3)
         escenas.append({"imagen": img, "tipo": tipo, "audio": mp3, "palabras": palabras})
 
     # 3. Montaje

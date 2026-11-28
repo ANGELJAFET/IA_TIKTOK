@@ -48,10 +48,17 @@ def segmento(imagen: Path, audio: Path, destino: Path, cfg_video: dict, idx: int
 
 
 def segmento_video(clip: Path, audio: Path, destino: Path, cfg_video: dict) -> float:
-    """Escena a partir de un clip de stock: recorta a vertical, repite si es corto, quita su audio."""
+    """Escena a partir de un clip (Veo o stock): recorta a vertical, lo ralentiza un poco si la voz
+    dura más (hasta 1.6x) o lo repite si hace falta; quita el audio original del clip."""
     w, h, fps = cfg_video["ancho"], cfg_video["alto"], cfg_video["fps"]
     dur = duracion(audio) + 0.25
-    vf = (f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},fps={fps},"
+    try:
+        dur_clip = duracion(clip)
+    except Exception:
+        dur_clip = dur
+    lento = dur / dur_clip if dur_clip > 0 else 1
+    pts = f"setpts={lento:.3f}*PTS," if 1 < lento <= 1.6 else ""
+    vf = (f"[0:v]{pts}scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},fps={fps},"
           f"setsar=1,format=yuv420p[v];[1:a]apad,aresample=44100[a]")
     _run([
         "ffmpeg", "-y", "-stream_loop", "-1", "-i", str(clip), "-i", str(audio), "-filter_complex", vf,
