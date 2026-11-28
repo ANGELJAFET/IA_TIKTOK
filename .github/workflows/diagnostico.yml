@@ -1,0 +1,27 @@
+name: Diagnóstico de video
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "ID de la ejecución con el video"
+        required: true
+permissions:
+  contents: write
+  actions: read
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -q && sudo apt-get install -y -q ffmpeg
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download "${{ inputs.run_id }}" -R "${{ github.repository }}" -D v
+          f=$(find v -name final.mp4 | head -1)
+          mkdir -p diag
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate,duration,bit_rate:format=duration,size -of default=nw=1 "$f" > diag/info.txt
+          ffmpeg -v error -i "$f" -af volumedetect -f null - 2> diag/volumen.txt || true
+          ffmpeg -v error -i "$f" -vf "fps=1/3,scale=270:-1,tile=4x2" -frames:v 1 diag/frames.jpg
+          git config user.name tiktok-bot; git config user.email bot@users.noreply.github.com
+          git checkout -b diag && git add -f diag && git commit -qm diag && git push -f origin diag
