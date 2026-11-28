@@ -1,0 +1,82 @@
+{
+  "serie": "La Espada de la Cumbre Olvidada: El Despertar de Seo-yeon",
+  "elenco": [
+    {
+      "nombre": "Seo-yeon",
+      "genero": "F",
+      "rol": "Protagonista / Heredera secreta",
+      "personalidad": "Serena, reservada y letal",
+      "aspecto": "Cabello negro azabache largo recogido en una coleta alta, túnicas blancas con bordados de loto plateado, ojos color ámbar profundo"
+    },
+    {
+      "nombre": "Do-hyun",
+      "genero": "M",
+      "rol": "Antagonista arrogante",
+      "personalidad": "Narcisista y cruel",
+      "aspecto": "Cabello corto castaño, vestiduras de seda púrpura con detalles dorados, abanico de hierro con filo oculto"
+    },
+    {
+      "nombre": "Maestro Kang",
+      "genero": "M",
+      "rol": "Mentor retirado",
+      "personalidad": "Sabio y bromista",
+      "aspecto": "Barba blanca larga, túnica café desaliñada, sombrero de paja tradicional, bastón de bambú nudoso"
+    }
+  ],
+  "estilo_visual": "Estilo artístico manhwa de alta fidelidad con sombreado dramático, paleta de colores vibrantes en las peleas y efectos de partículas de energía (aura) intensos. Korean manhwa webtoon illustration, murim martial arts fantasy, dramatic lighting, glowing qi energy effects, sharp detailed line art, cinematic composition, vertical 9:16 panel",
+  "hashtags": [
+    "#manhwa",
+    "#murim",
+    "#historiascoreanas",
+    "#artesmarciales",
+    "#recapmanhwa"
+  ],
+  "partes": [
+    {
+      "titulo": "El descenso de la montaña prohibida",
+      "enfoque": "Seo-yeon baja al mundo exterior tras 15 años de entrenamiento, buscando respuestas sobre su linaje mientras oculta sus habilidades bajo ropas humildes."
+    },
+    {
+      "titulo": "Humillación en la posada del Dragón",
+      "enfoque": "Do-hyun intenta forzar a Seo-yeon a ser su prometida frente a todos; ella finge debilidad mientras él subestima su presencia."
+    },
+    {
+      "titulo": "La técnica prohibida de los Nueve Lotos",
+      "enfoque": "Seo-yeon esquiva los ataques de los guardaespaldas de Do-hyun con movimientos imperceptibles, revelando solo una fracción de su velocidad."
+    },
+    {
+      "titulo": "El desafío del abanico sangriento",
+      "enfoque": "Do-hyun, humillado tras la pelea anterior, contrata a una secta oscura para emboscar a Seo-yeon en el mercado nocturno."
+    },
+    {
+      "titulo": "El despertar del aura plateada",
+      "enfoque": "Rodeada de enemigos, Seo-yeon libera su verdadero poder, transformando el mercado con una técnica de espada que corta el acero como si fuera papel."
+    },
+    {
+      "titulo": "La verdad sobre el linaje caído",
+      "enfoque": "Seo-yeon descubre una carta antigua que vincula al clan de Do-hyun con la traición que obligó a su maestro a exiliarse años atrás."
+    },
+    {
+      "titulo": "Duelo final en la cumbre del Palacio",
+      "enfoque": "Seo-yeon se infiltra en la sede del clan de Do-hyun para confrontarlo, dejando claro que nadie puede ignorar a la hija del Gran Maestro."
+    }
+  ],
+  "voces": {
+    "Seo-yeon": [
+      "es-MX-DaliaNeural",
+      "+0Hz"
+    ],
+    "Do-hyun": [
+      "es-CO-GonzaloNeural",
+      "+0Hz"
+    ],
+    "Maestro Kang": [
+      "es-AR-TomasNeural",
+      "+0Hz"
+    ]
+  },
+  "parte_actual": 1,
+  "resumenes": [
+    "Seo-yeon abandona su entrenamiento de 15 años en la montaña para descubrir la verdad de su linaje."
+  ]
+}

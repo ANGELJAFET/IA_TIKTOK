@@ -1,5 +1,4 @@
 # Cola de temas para las próximas SERIES (opcional). Una idea por línea; cada una se vuelve una serie de 7 partes.
 # Si está vacía, la IA inventa la historia sola sin repetir las anteriores.
-La hija de un maestro retirado baja de la montaña; es poderosa pero nadie lo sabe, hasta que un joven arrogante la quiere cortejar a la fuerza y termina en una pelea
 El sirviente de la posada que todos humillan es en realidad el espadachín más temido del murim
 La princesa expulsada de su clan regresa diez años después con la técnica prohibida de su madre
