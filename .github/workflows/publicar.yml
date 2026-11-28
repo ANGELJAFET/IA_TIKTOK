@@ -15,6 +15,10 @@ on:
         description: "Tema específico (opcional)"
         type: string
         required: false
+      perfil:
+        description: "Perfil (vacío = manhwa; 'frutas' = novelas de frutas con acentos)"
+        type: string
+        required: false
       resubir_ultimo:
         description: "Resubir el último video generado (sin generar uno nuevo)"
         type: boolean
@@ -67,9 +71,11 @@ jobs:
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
           TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
           TEMA: ${{ inputs.tema }}
+          PERFIL: ${{ inputs.perfil }}
         run: |
           ARGS=""
-          if [ "${{ inputs.solo_generar }}" = "true" ]; then ARGS="--solo-generar"; fi
+          if [ -n "$PERFIL" ]; then ARGS="--perfil $PERFIL"; fi
+          if [ "${{ inputs.solo_generar }}" = "true" ]; then ARGS="$ARGS --solo-generar"; fi
           if [ "${{ inputs.resubir_ultimo }}" = "true" ]; then python main.py --resubir anterior
           elif [ -n "$TEMA" ]; then python main.py $ARGS --tema "$TEMA"; else python main.py $ARGS; fi
 

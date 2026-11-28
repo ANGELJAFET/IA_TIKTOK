@@ -76,7 +76,8 @@ def toca_video(cfg: dict, historial: list[dict]) -> bool:
     for regla in cfg.get("frecuencia", [{"desde_vistas": 0, "cada_dias": 3}]):
         if vistas >= regla["desde_vistas"]:
             dias = regla["cada_dias"]
-    hechos = [h for h in historial if h.get("estado") not in ("error", None) and not h.get("prueba")]
+    hechos = [h for h in historial if h.get("estado") not in ("error", None) and not h.get("prueba")
+              and h.get("perfil", "principal") == "principal"]
     if not hechos:
         print(f"▶ Primer video (vistas totales: {vistas})")
         return True
@@ -95,11 +96,23 @@ def main():
     ap.add_argument("--solo-generar", action="store_true")
     ap.add_argument("--tema")
     ap.add_argument("--solo-estadisticas", action="store_true", help="solo actualiza los datos del panel")
+    ap.add_argument("--perfil", default="", help="perfil de perfiles/<nombre>.yaml (ej. frutas)")
     ap.add_argument("--bucle", type=int, default=0, help="con --solo-estadisticas: repite cada 60 s durante N minutos")
     ap.add_argument("--resubir", help="carpeta con final.mp4 y guion.json de un intento anterior: lo sube sin generar")
     args = ap.parse_args()
 
     cfg = yaml.safe_load((RAIZ / "config.yaml").read_text(encoding="utf-8"))
+    global SERIE
+    perfil = (args.perfil or "").strip()
+    if perfil:
+        extra = yaml.safe_load((RAIZ / "perfiles" / f"{perfil}.yaml").read_text(encoding="utf-8"))
+        for k, v in extra.items():
+            if isinstance(v, dict) and isinstance(cfg.get(k), dict):
+                cfg[k] = {**cfg[k], **v}
+            else:
+                cfg[k] = v
+        SERIE = RAIZ / "data" / f"serie_{perfil}.json"
+        print(f"▶ Perfil: {perfil}")
     historial = json.loads(HISTORIAL.read_text(encoding="utf-8")) if HISTORIAL.exists() else []
     client = genai.Client()  # lee GEMINI_API_KEY
 
@@ -234,6 +247,7 @@ def main():
     tags = list(dict.fromkeys(g.get("hashtags", []) + cfg["canal"]["hashtags_base"]))
     titulo = f"{g['titulo']} {' '.join(tags)}"
     registro = {"fecha": sello, "serie": plan["serie"], "parte": g["parte"], "tema": g["tema"], "prueba": es_prueba,
+                "perfil": perfil or "principal",
                 "titulo": titulo, "duracion": round(dur, 1)}
 
     if args.solo_generar:

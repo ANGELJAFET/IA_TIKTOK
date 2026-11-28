@@ -1,0 +1,26 @@
+# Perfil "frutas": telenovelas absurdas de frutas con acentos de cada país.
+# Se usa con:  python main.py --perfil frutas   (o en Actions → Publicar TikTok → perfil: frutas)
+# Todo lo que no esté aquí se toma de config.yaml.
+canal:
+  nicho: "telenovelas ABSURDAS y exageradas protagonizadas por frutas de distintos países latinoamericanos, cada una con su acento y jerga, con guiños a la cultura pop latina"
+  idioma: "español latinoamericano, tono de compas, muy coloquial"
+  publico: "Latinoamérica (México, Centroamérica y Sudamérica), 15-35 años"
+  estilo_visual: "3D animated cartoon style like a Pixar movie, anthropomorphic fruit characters with expressive faces, arms and legs, vibrant colors, cinematic lighting, vertical composition"
+  hashtags_base: ["#frutinovelas", "#novela", "#drama", "#humor", "#viral", "#parati"]
+  reglas_serie: |
+    - Los personajes SIEMPRE son frutas con personalidad, cada una con "genero" ("M"/"F") y "pais" (MX, CO, AR, VE, CU, HN,
+      DO, PR, CL, PE, SV, GT, CR, PA, NI). Que sean de PAÍSES DISTINTOS y hablen con la jerga marcada de su país.
+    - Historias ABSURDAS y exageradas de telenovela: giros ridículos e inesperados. Mucho drama, chisme, celos y comedia.
+    - El humor es sobre los PERSONAJES y sus defectos, nunca burla ni desprecio hacia un país o nacionalidad.
+    - Guiños a cantantes y famosos latinos SOLO como humor de cultura pop; nunca inventar frases, delitos o escándalos
+      de personas reales, ni apoyar o atacar partidos o candidatos.
+  reglas_parte: |
+    - El NARRADOR (un compa contando el chisme) termina cada oración con "wey" o "bro", alternándolos. Habla poco:
+      como mucho una línea corta por escena; la historia avanza con los diálogos.
+    - Cada PERSONAJE habla con el acento y la jerga MUY marcados de su país ("pais" en el elenco) y termina CADA oración
+      con la muletilla de su país (MX: wey; CO: parce; AR: che/boludo; VE: chamo; CU: asere; HN: maje; DO: mano;
+      PR: bro; CL: po; PE: pe; CR: mae; PA: loco; NI: chele; SV: cerote; GT: vos).
+    - La historia es ABSURDA: cada escena con una exageración o un giro ridículo que dé risa.
+voz:
+  nombre: "es-US-AlonsoNeural"
+  velocidad: "+22%"

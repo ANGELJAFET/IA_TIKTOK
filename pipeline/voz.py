@@ -45,6 +45,9 @@ VOCES_PAIS = {
     "PE": {"M": ("es-PE-AlexNeural", "+0Hz"), "F": ("es-PE-CamilaNeural", "+0Hz")},
     "SV": {"M": ("es-SV-RodrigoNeural", "+0Hz"), "F": ("es-SV-LorenaNeural", "+0Hz")},
     "GT": {"M": ("es-GT-AndresNeural", "+0Hz"), "F": ("es-GT-MartaNeural", "+0Hz")},
+    "CR": {"M": ("es-CR-JuanNeural", "+0Hz"), "F": ("es-CR-MariaNeural", "+0Hz")},
+    "PA": {"M": ("es-PA-RobertoNeural", "+0Hz"), "F": ("es-PA-MargaritaNeural", "+0Hz")},
+    "NI": {"M": ("es-NI-FedericoNeural", "+0Hz"), "F": ("es-NI-YolandaNeural", "+0Hz")},
     "ES": {"M": ("es-ES-AlvaroNeural", "+0Hz"), "F": ("es-ES-ElviraNeural", "+0Hz")},
 }
 VOCES = {g: [VOCES_PAIS[p][g] for p in VOCES_PAIS] for g in ("M", "F")}
