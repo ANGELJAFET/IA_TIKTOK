@@ -1,0 +1,23 @@
+name: Probar Veo
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12", cache: pip}
+      - run: pip install -r requirements.txt
+      - env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python tools/probar_veo.py
+      - if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ -f prueba_veo/clip.mp4 ] || exit 0
+          mkdir o && cp prueba_veo/clip.mp4 o/video.mp4 && cd o && git init -q && git checkout -q -b entrega
+          git config user.name bot && git config user.email bot@users.noreply.github.com && git add . && git commit -qm veo
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" entrega
