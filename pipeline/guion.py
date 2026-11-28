@@ -1,6 +1,7 @@
 """Genera series (plan de N partes) y el guion de cada parte con Gemini."""
 import json
 import re
+import time
 
 from google import genai
 from google.genai import types
@@ -61,12 +62,27 @@ def _json(texto: str) -> dict:
     return json.loads(m.group(0))
 
 
+def _generar(client, modelo: str, prompt: str, intentos: int = 6):
+    """Llama a Gemini reintentando si el modelo está saturado (503) o hay límite momentáneo (429)."""
+    espera = 10
+    for i in range(intentos):
+        try:
+            return client.models.generate_content(
+                model=modelo, contents=prompt,
+                config=types.GenerateContentConfig(response_mime_type="application/json", temperature=0.9),
+            )
+        except Exception as e:
+            txt = str(e)
+            if i == intentos - 1 or not any(c in txt for c in ("503", "UNAVAILABLE", "429", "500", "overloaded")):
+                raise
+            print(f"  Gemini ocupado ({txt[:60]}...), reintento en {espera}s")
+            time.sleep(espera)
+            espera = min(espera * 2, 120)
+
+
 def _pedir_json(client, modelo: str, prompt: str, validar) -> dict:
     for intento in range(3):
-        r = client.models.generate_content(
-            model=modelo, contents=prompt,
-            config=types.GenerateContentConfig(response_mime_type="application/json", temperature=0.9),
-        )
+        r = _generar(client, modelo, prompt)
         try:
             d = _json(r.text)
             if validar(d):
