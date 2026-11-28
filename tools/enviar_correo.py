@@ -10,8 +10,8 @@ from email.message import EmailMessage
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
-usuario = os.environ.get("GMAIL_USER")
-clave = os.environ.get("GMAIL_APP_PASSWORD")
+usuario = (os.environ.get("GMAIL_USER") or "").strip()
+clave = (os.environ.get("GMAIL_APP_PASSWORD") or "").replace(" ", "").replace("\u00a0", "").strip()
 if not usuario or not clave:
     print("Correo no configurado (faltan GMAIL_USER / GMAIL_APP_PASSWORD); no se envía.")
     sys.exit(0)
@@ -48,7 +48,13 @@ else:
     msg["Subject"] = "⚠️ Fact Drop: hoy no se pudo generar el video"
     msg.set_content(f"La ejecución de hoy falló. Revisa el detalle aquí:\n{url}\n")
 
-with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
-    s.login(usuario, clave)
-    s.send_message(msg)
-print(f"Correo enviado a {destino}: {msg['Subject']}")
+print(f"Usuario: {usuario[:3]}…@{usuario.split('@')[-1]} · clave de {len(clave)} caracteres (debe ser 16)")
+try:
+    with smtplib.SMTP("smtp.gmail.com", 587, timeout=60) as s:
+        s.starttls()
+        s.login(usuario, clave)
+        s.send_message(msg)
+    print(f"Correo enviado a {destino}: {msg['Subject']}")
+except Exception as e:
+    print(f"::warning::No se pudo enviar el correo: {e}. Revisa GMAIL_USER (tu correo completo) y "
+          f"GMAIL_APP_PASSWORD (contraseña de aplicación de 16 letras, no tu contraseña normal).")
