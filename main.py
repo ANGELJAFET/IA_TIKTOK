@@ -59,6 +59,7 @@ def main():
     trabajo = RAIZ / "salida" / sello
     trabajo.mkdir(parents=True, exist_ok=True)
 
+    es_prueba = args.solo_generar  # lanzado a mano con "Solo generar": no gasta partes de la serie
     if not args.solo_generar and not cfg["tiktok"].get("publicar_automatico", True):
         print("▶ Publicación automática desactivada en config.yaml: solo se genera el video (llega por correo)")
         args.solo_generar = True
@@ -182,7 +183,7 @@ def main():
 
     # La serie solo avanza cuando el video se publicó (las pruebas no gastan partes)
     avanzar = registro.get("estado") not in ("error", "solo_generado") or (
-        registro.get("estado") == "solo_generado" and not cfg["tiktok"].get("publicar_automatico", True))
+        registro.get("estado") == "solo_generado" and not es_prueba)
     if avanzar:
         plan["parte_actual"] += 1
         plan["resumenes"].append(g.get("resumen", ""))
