@@ -62,6 +62,15 @@ def segmento_video(clip: Path, audio: Path, destino: Path, cfg_video: dict) -> f
     return dur
 
 
+def fondo_color(destino: Path, cfg_video: dict, idx: int) -> Path:
+    """Fondo de respaldo (morado de la marca con viñeta) si no hay imágenes disponibles."""
+    colores = ["0x3b0a57", "0x4b1670", "0x2a0b45", "0x5a1a85"]
+    w, h = cfg_video["ancho"], cfg_video["alto"]
+    _run(["ffmpeg", "-y", "-f", "lavfi", "-i", f"color=c={colores[idx % len(colores)]}:s={w}x{h}",
+          "-vf", "vignette=PI/4", "-frames:v", "1", str(destino)])
+    return destino
+
+
 def _ts(s: float) -> str:
     h, rem = divmod(max(s, 0), 3600)
     m, sec = divmod(rem, 60)

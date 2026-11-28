@@ -56,3 +56,11 @@ tiktok:
   desactivar_comentarios: false
   desactivar_duo: false
   desactivar_stitch: false
+
+# ===== Panel web (docs/panel.html) =====
+panel:
+  # TikTok NO da los ingresos por API: el panel muestra un ESTIMADO = vistas / 1000 × este valor.
+  # Creator Rewards suele pagar ~0.40–1.00 USD por 1000 vistas válidas, pero exige videos de +1 minuto
+  # y 10,000 seguidores. Pon 0 si aún no estás en un programa de pago.
+  usd_por_1000_vistas: 0.5
+  costo_por_video_usd: 0.14   # gasto aproximado en Gemini por video

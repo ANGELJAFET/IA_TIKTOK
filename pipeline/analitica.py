@@ -7,7 +7,8 @@ from pathlib import Path
 import requests
 
 API = "https://open.tiktokapis.com/v2"
-CAMPOS = "id,title,video_description,create_time,view_count,like_count,comment_count,share_count"
+CAMPOS = ("id,title,video_description,create_time,duration,cover_image_url,share_url,embed_link,"
+          "view_count,like_count,comment_count,share_count")
 
 
 def listar_videos(token: str, maximo: int = 100) -> list[dict]:
@@ -101,3 +102,35 @@ def actualizar(token: str, historial: list[dict], destino: Path) -> str:
     for r in ranking[:5]:
         print(f"  {r['puntaje']:>8}  {r['serie']}  ({r['vistas_promedio']} vistas prom.)")
     return resumen_para_ia(ranking)
+
+
+def guardar_panel(token: str, historial: list[dict], destino: Path) -> list[dict]:
+    """Guarda data/videos.json con cada video publicado y su serie, para el panel web."""
+    videos = listar_videos(token)
+    serie_de = {}
+    for serie, vs in _emparejar(historial, videos).items():
+        for v in vs:
+            serie_de[v["id"]] = serie
+    partes = {}
+    for h in historial:
+        if h.get("serie"):
+            partes.setdefault(h["serie"], []).append(h.get("parte"))
+    salida = []
+    for v in sorted(videos, key=lambda x: x.get("create_time", 0), reverse=True):
+        salida.append({
+            "id": v["id"],
+            "titulo": v.get("title") or (v.get("video_description") or "")[:120],
+            "fecha": v.get("create_time", 0),
+            "duracion": v.get("duration", 0),
+            "portada": v.get("cover_image_url", ""),
+            "enlace": v.get("share_url", ""),
+            "serie": serie_de.get(v["id"], ""),
+            "vistas": v.get("view_count", 0),
+            "likes": v.get("like_count", 0),
+            "comentarios": v.get("comment_count", 0),
+            "compartidos": v.get("share_count", 0),
+        })
+    destino.write_text(json.dumps({"actualizado": int(datetime.now(timezone.utc).timestamp()),
+                                   "videos": salida}, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"  panel: {len(salida)} videos guardados")
+    return salida

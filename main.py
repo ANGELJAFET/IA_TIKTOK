@@ -47,6 +47,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--solo-generar", action="store_true")
     ap.add_argument("--tema")
+    ap.add_argument("--solo-estadisticas", action="store_true", help="solo actualiza los datos del panel")
     args = ap.parse_args()
 
     cfg = yaml.safe_load((RAIZ / "config.yaml").read_text(encoding="utf-8"))
@@ -68,6 +69,16 @@ def main():
         if tok.get("refresh_token") and tok["refresh_token"] != os.environ["TIKTOK_REFRESH_TOKEN"]:
             (RAIZ / ".nuevo_refresh_token").write_text(tok["refresh_token"])
 
+    if tok:
+        try:
+            print("▶ Actualizando estadísticas del panel")
+            analitica.guardar_panel(tok["access_token"], historial, RAIZ / "data" / "videos.json")
+            analitica.actualizar(tok["access_token"], historial, RAIZ / "data" / "rendimiento.json")
+        except Exception as e:
+            print(f"  (sin estadísticas: {e})")
+    if args.solo_estadisticas:
+        return
+
     # 1. Serie: continúa la actual o planea una nueva (7 partes, 1 por día)
     plan = json.loads(SERIE.read_text(encoding="utf-8")) if SERIE.exists() else None
     tema_de_cola = None
@@ -77,12 +88,9 @@ def main():
         print(f"▶ Nueva serie ({'tema: ' + tema if tema else 'tema automático'})")
         series_previas = list(dict.fromkeys(h.get("serie", h["tema"]) for h in historial))
         aprendizaje = ""
-        if tok:
-            try:
-                print("▶ Revisando qué series gustaron más")
-                aprendizaje = analitica.actualizar(tok["access_token"], historial, RAIZ / "data" / "rendimiento.json")
-            except Exception as e:
-                print(f"  (sin estadísticas: {e})")
+        rend = RAIZ / "data" / "rendimiento.json"
+        if rend.exists():
+            aprendizaje = analitica.resumen_para_ia(json.loads(rend.read_text(encoding="utf-8")))
         plan = guion.planear_serie(client, cfg, tema, series_previas, aprendizaje)
         print(f"  serie: {plan['serie']} ({len(plan['partes'])} partes)")
     print(f"▶ Guion parte {plan['parte_actual'] + 1}/{len(plan['partes'])}")
@@ -100,10 +108,12 @@ def main():
             try:
                 img, tipo = imagenes.generar_imagen(client, cfg["modelos"]["imagen"], e["imagen"], trabajo / f"img_{i:02d}"), "imagen"
             except RuntimeError as err:
-                if not os.environ.get("PEXELS_API_KEY"):
-                    raise
-                print(f"  Gemini falló ({str(err)[:80]}...); usando Pexels")
-                img, tipo = pexels.visual_para_escena(consultas, trabajo / f"vis_{i:02d}", usados)
+                if os.environ.get("PEXELS_API_KEY"):
+                    print(f"  Gemini falló ({str(err)[:80]}...); usando Pexels")
+                    img, tipo = pexels.visual_para_escena(consultas, trabajo / f"vis_{i:02d}", usados)
+                else:
+                    print(f"  Gemini falló ({str(err)[:80]}...); usando fondo de color")
+                    img, tipo = montaje.fondo_color(trabajo / f"fondo_{i:02d}.png", cfg["video"], i), "imagen"
         else:
             img, tipo = pexels.visual_para_escena(consultas, trabajo / f"vis_{i:02d}", usados)
         mp3 = trabajo / f"voz_{i:02d}.mp3"
