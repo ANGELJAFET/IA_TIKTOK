@@ -1,4 +1,3 @@
 # Cola de temas para las próximas SERIES (opcional). Una idea por línea; cada una se vuelve una serie de 7 días.
 # Si está vacía, Gemini inventa la historia sola sin repetir las anteriores.
-El Mango que le fue infiel a la Piña con la Sandía
 La Banana que quería ser cantante de reguetón

@@ -1,0 +1,70 @@
+{
+  "serie": "La Traición del Mango: Jugo de Mentiras",
+  "elenco": [
+    {
+      "fruta": "Mango",
+      "nombre": "Mauricio Mango",
+      "personalidad": "galán presumido y patán",
+      "aspecto": "mango muy maduro, con lentes de sol y una cadena de oro"
+    },
+    {
+      "fruta": "Piña",
+      "nombre": "Pilar Piña",
+      "personalidad": "dramática y obsesionada con el control",
+      "aspecto": "piña con corona de hojas y pestañas postizas gigantes"
+    },
+    {
+      "fruta": "Sandía",
+      "nombre": "Sandy",
+      "personalidad": "la 'otra' que se hace la víctima",
+      "aspecto": "pedazo de sandía con labial rojo intenso"
+    },
+    {
+      "fruta": "Limón",
+      "nombre": "Don Limón",
+      "personalidad": "amargado y el chismoso del barrio",
+      "aspecto": "limón con arrugas y ceño fruncido permanente"
+    }
+  ],
+  "estilo_visual": "Estilo de animación 3D tipo caricatura de colores saturados con fondos de cocina retro y transiciones rápidas estilo TikTok. 3D animated cartoon style like a Pixar movie, anthropomorphic fruit characters with expressive faces, arms and legs, vibrant colors, cinematic lighting, vertical composition",
+  "hashtags": [
+    "#NovelaDeFrutas",
+    "#ChismeFrutal",
+    "#DramaEnElFrutero",
+    "#MangoInfiel"
+  ],
+  "partes": [
+    {
+      "titulo": "La cena de aniversario",
+      "enfoque": "Pilar Piña prepara una cena romántica para Mauricio, pero él llega tarde oliendo a perfume de otra fruta."
+    },
+    {
+      "titulo": "El mensaje prohibido",
+      "enfoque": "Mientras Mauricio duerme, Pilar revisa su celular y encuentra un mensaje de una tal 'S. Sandía' citándolo en el mercado."
+    },
+    {
+      "titulo": "El espionaje en el mercado",
+      "enfoque": "Pilar se disfraza con una red de naranjas y sigue a Mauricio hasta la sección de frutas frescas donde ocurre el encuentro."
+    },
+    {
+      "titulo": "¡Te caché, traidor!",
+      "enfoque": "Pilar confronta a Mauricio y a Sandy en pleno acto; la discusión se pone más intensa que final de reality show."
+    },
+    {
+      "titulo": "El despecho de la Piña",
+      "enfoque": "Pilar se va de la casa y organiza una fiesta con las frutas solteras, subiendo fotos para darle celos a Mauricio."
+    },
+    {
+      "titulo": "La disculpa del Mango",
+      "enfoque": "Mauricio busca a Pilar para pedirle perdón, jurando que lo de Sandy fue solo un error de 'jugo' pasajero."
+    },
+    {
+      "titulo": "El giro inesperado",
+      "enfoque": "Don Limón revela que Sandy no estaba sola y que el verdadero plan era arruinar la reputación de la pareja."
+    }
+  ],
+  "parte_actual": 1,
+  "resumenes": [
+    "Pilar Piña prepara una cena especial, pero Mauricio Mango llega oliendo a perfume de otra fruta."
+  ]
+}
