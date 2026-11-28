@@ -30,7 +30,7 @@ def duracion(ruta: Path) -> float:
 def segmento(imagen: Path, audio: Path, destino: Path, cfg_video: dict, idx: int) -> float:
     """Clip de una escena. Devuelve su duración."""
     w, h, fps = cfg_video["ancho"], cfg_video["alto"], cfg_video["fps"]
-    dur = duracion(audio) + 0.25
+    dur = duracion(audio) + 0.1
     frames = int(dur * fps) + 1
     z, x, y = (s.format(f=frames) for s in MOVIMIENTOS[idx % len(MOVIMIENTOS)])
     vf = (
@@ -51,7 +51,7 @@ def segmento_video(clip: Path, audio: Path, destino: Path, cfg_video: dict) -> f
     """Escena a partir de un clip (Veo o stock): recorta a vertical, lo ralentiza un poco si la voz
     dura más (hasta 1.6x) o lo repite si hace falta; quita el audio original del clip."""
     w, h, fps = cfg_video["ancho"], cfg_video["alto"], cfg_video["fps"]
-    dur = duracion(audio) + 0.25
+    dur = duracion(audio) + 0.1
     try:
         dur_clip = duracion(clip)
     except Exception:

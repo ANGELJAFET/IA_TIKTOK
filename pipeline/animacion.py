@@ -8,35 +8,54 @@ from google.genai import types
 _MODELO_CACHE: str | None = None
 
 
-def elegir_modelo(client: genai.Client, preferido: str) -> str:
-    """Si config dice "auto", busca el Veo más barato disponible (Lite > Fast > normal)."""
-    global _MODELO_CACHE
+CANDIDATOS = [
+    "veo-3.1-lite-generate-preview", "veo-3.1-fast-generate-preview", "veo-3.1-generate-preview",
+    "veo-3.0-fast-generate-001", "veo-3.0-generate-001", "veo-2.0-generate-001",
+]
+
+
+def candidatos(client: genai.Client, preferido: str) -> list[str]:
+    """Modelos a probar en orden (del más barato al más caro)."""
     if preferido and preferido != "auto":
-        return preferido
+        return [preferido]
     if _MODELO_CACHE:
-        return _MODELO_CACHE
-    nombres = [m.name.replace("models/", "") for m in client.models.list() if "veo" in m.name]
-    for clave in ("lite", "fast", ""):
-        cand = sorted((n for n in nombres if clave in n), reverse=True)
-        if cand:
-            _MODELO_CACHE = cand[0]
-            print(f"  modelo de video: {_MODELO_CACHE}")
-            return _MODELO_CACHE
-    raise RuntimeError("No hay modelos Veo disponibles para esta clave")
+        return [_MODELO_CACHE]
+    lista = []
+    try:
+        lista = [m.name.replace("models/", "") for m in client.models.list() if "veo" in m.name]
+    except Exception:
+        pass
+    orden = sorted(lista, key=lambda n: (0 if "lite" in n else 1 if "fast" in n else 2, n))
+    return list(dict.fromkeys(orden + CANDIDATOS))
 
 
 def animar(client: genai.Client, modelo: str, imagen: Path, prompt: str, destino: Path,
            segundos: int = 8, max_espera: int = 600) -> Path:
-    modelo = elegir_modelo(client, modelo)
+    global _MODELO_CACHE
     mime = "image/png" if imagen.suffix == ".png" else "image/jpeg"
     texto = (f"{prompt}. The fruit characters move and act like people: they talk with mouth movement, "
              f"gesture with their arms, walk and show emotions. Smooth cinematic camera. No text on screen.")
-    op = client.models.generate_videos(
-        model=modelo,
-        prompt=texto,
-        image=types.Image(image_bytes=imagen.read_bytes(), mime_type=mime),
-        config=types.GenerateVideosConfig(aspect_ratio="9:16", duration_seconds=segundos, number_of_videos=1),
-    )
+    op, ultimo = None, None
+    for m in candidatos(client, modelo):
+        try:
+            op = client.models.generate_videos(
+                model=m,
+                prompt=texto,
+                image=types.Image(image_bytes=imagen.read_bytes(), mime_type=mime),
+                config=types.GenerateVideosConfig(aspect_ratio="9:16", duration_seconds=segundos, number_of_videos=1),
+            )
+            if _MODELO_CACHE != m:
+                print(f"  modelo de video: {m}")
+            _MODELO_CACHE = m
+            break
+        except Exception as e:
+            ultimo = e
+            txt = str(e)
+            if any(k in txt for k in ("404", "NOT_FOUND", "not found", "not supported", "INVALID_ARGUMENT")):
+                continue  # este modelo no existe o no acepta la petición: probar el siguiente
+            raise
+    if op is None:
+        raise RuntimeError(f"Ningún modelo Veo funcionó: {ultimo}")
     fin = time.time() + max_espera
     while not op.done:
         if time.time() > fin:

@@ -57,7 +57,7 @@ video:
 # ===== Voz (edge-tts, gratis) =====
 voz:
   nombre: "es-US-AlonsoNeural"   # narrador (neutro); los personajes usan la voz de su país
-  velocidad: "+8%"
+  velocidad: "+22%"   # más rápido = menos pausado
 
 # ===== TikTok =====
 tiktok:

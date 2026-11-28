@@ -91,12 +91,12 @@ def narrar_escena(lineas: list[dict], voces: dict, narrador: str, velocidad: str
         dur = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
                                     str(mp3)], capture_output=True, text=True, check=True).stdout.strip())
         palabras += [(a + t, b + t, w) for a, b, w in pal]
-        t += dur + 0.12
+        t += dur + 0.04
         partes.append(mp3)
     lista = destino.with_suffix(".txt")
     lista.write_text("".join(f"file '{p.name}'\nduration {0}\n" for p in []) +
                      "".join(f"file '{p.name}'\n" for p in partes))
-    filtro = "".join(f"[{k}:a]apad=pad_dur=0.12[a{k}];" for k in range(len(partes))) + \
+    filtro = "".join(f"[{k}:a]apad=pad_dur=0.04[a{k}];" for k in range(len(partes))) + \
              "".join(f"[a{k}]" for k in range(len(partes))) + f"concat=n={len(partes)}:v=0:a=1[out]"
     cmd = ["ffmpeg", "-y"]
     for p in partes:
