@@ -44,6 +44,8 @@ def quitar_de_cola(tema: str):
 
 
 def estadisticas_en_bucle(token: str, historial: list[dict], minutos: int, cada: int = 60):
+    import sys as _s
+    _s.stdout.reconfigure(line_buffering=True)
     """Casi tiempo real: consulta TikTok cada `cada` segundos y sube los datos al repo si cambiaron."""
     import subprocess
     import time as _t
@@ -55,11 +57,11 @@ def estadisticas_en_bucle(token: str, historial: list[dict], minutos: int, cada:
         except Exception as e:
             print(f"  (TikTok no respondió: {e})")
             continue
-        subprocess.run(["git", "add", "data/videos.json", "data/historico_vistas.json"], cwd=RAIZ)
+        subprocess.run(["git", "add", "data/"], cwd=RAIZ)
         if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=RAIZ).returncode != 0:
             subprocess.run(["git", "commit", "-qm", "Estadísticas en vivo"], cwd=RAIZ)
             for _ in range(3):
-                if subprocess.run(["git", "pull", "--rebase", "-q"], cwd=RAIZ).returncode == 0 and \
+                if subprocess.run(["git", "pull", "--rebase", "--autostash", "-q"], cwd=RAIZ).returncode == 0 and \
                    subprocess.run(["git", "push", "-q"], cwd=RAIZ).returncode == 0:
                     break
 
