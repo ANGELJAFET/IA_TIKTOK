@@ -1,3 +1,6 @@
 # Cola de temas para las próximas SERIES (opcional). Una idea por línea; cada una se vuelve una serie de 7 días.
 # Si está vacía, Gemini inventa la historia sola sin repetir las anteriores.
-La Banana que quería ser cantante de reguetón
+La Piña hondureña deja al Mango por un Aguacate mexicano vago que solo anda en trocas
+El Plátano colombiano descubre que su gemelo malvado es un Pepino disfrazado
+La suegra Toronja argentina se casa con el ex de su nuera
+La Fresa venezolana gana la lotería y su novio Coco cubano finge amnesia

@@ -31,22 +31,37 @@ def narrar(texto: str, voz: str, velocidad: str, destino: Path, tono: str = "+0H
     raise RuntimeError("edge-tts no respondió")
 
 
-# Voces en español para el elenco (se reparten sin repetir dentro de una serie)
-VOCES = {
-    "M": [("es-MX-JorgeNeural", "+0Hz"), ("es-CO-GonzaloNeural", "-4Hz"), ("es-AR-TomasNeural", "+0Hz"),
-          ("es-VE-SebastianNeural", "+6Hz"), ("es-US-AlonsoNeural", "-8Hz"), ("es-CU-ManuelNeural", "+4Hz")],
-    "F": [("es-MX-DaliaNeural", "+0Hz"), ("es-CO-SalomeNeural", "+6Hz"), ("es-AR-ElenaNeural", "+0Hz"),
-          ("es-VE-PaolaNeural", "+4Hz"), ("es-US-PalomaNeural", "-2Hz"), ("es-CU-BelkysNeural", "+8Hz")],
+# Voces por país (acento) y género. pais = código ISO del personaje en el elenco.
+VOCES_PAIS = {
+    "MX": {"M": ("es-MX-JorgeNeural", "+0Hz"), "F": ("es-MX-DaliaNeural", "+0Hz")},
+    "CO": {"M": ("es-CO-GonzaloNeural", "+0Hz"), "F": ("es-CO-SalomeNeural", "+2Hz")},
+    "AR": {"M": ("es-AR-TomasNeural", "+0Hz"), "F": ("es-AR-ElenaNeural", "+0Hz")},
+    "VE": {"M": ("es-VE-SebastianNeural", "+0Hz"), "F": ("es-VE-PaolaNeural", "+0Hz")},
+    "CU": {"M": ("es-CU-ManuelNeural", "+0Hz"), "F": ("es-CU-BelkysNeural", "+0Hz")},
+    "HN": {"M": ("es-HN-CarlosNeural", "+0Hz"), "F": ("es-HN-KarlaNeural", "+0Hz")},
+    "DO": {"M": ("es-DO-EmilioNeural", "+0Hz"), "F": ("es-DO-RamonaNeural", "+0Hz")},
+    "PR": {"M": ("es-PR-VictorNeural", "+0Hz"), "F": ("es-PR-KarinaNeural", "+0Hz")},
+    "CL": {"M": ("es-CL-LorenzoNeural", "+0Hz"), "F": ("es-CL-CatalinaNeural", "+0Hz")},
+    "PE": {"M": ("es-PE-AlexNeural", "+0Hz"), "F": ("es-PE-CamilaNeural", "+0Hz")},
+    "SV": {"M": ("es-SV-RodrigoNeural", "+0Hz"), "F": ("es-SV-LorenaNeural", "+0Hz")},
+    "GT": {"M": ("es-GT-AndresNeural", "+0Hz"), "F": ("es-GT-MartaNeural", "+0Hz")},
+    "ES": {"M": ("es-ES-AlvaroNeural", "+0Hz"), "F": ("es-ES-ElviraNeural", "+0Hz")},
 }
+VOCES = {g: [VOCES_PAIS[p][g] for p in VOCES_PAIS] for g in ("M", "F")}
 
 
 def asignar_voces(elenco: list[dict], voz_narrador: str) -> dict:
-    """{nombre: [voz, tono]} distinto para cada personaje; el narrador nunca se repite con ellos."""
+    """{nombre: [voz, tono]}: usa el acento del país del personaje; si se repite, cambia el tono."""
     usadas, res = {voz_narrador}, {}
     for i, p in enumerate(elenco):
         g = (p.get("genero") or ("F" if i % 2 else "M")).upper()[:1]
-        g = g if g in VOCES else "M"
-        voz = next((v for v in VOCES[g] if v[0] not in usadas), VOCES[g][i % len(VOCES[g])])
+        g = g if g in ("M", "F") else "M"
+        pais = (p.get("pais") or "").upper()[:2]
+        voz = VOCES_PAIS.get(pais, {}).get(g)
+        if not voz or voz[0] in usadas:
+            voz = next((v for v in VOCES[g] if v[0] not in usadas), voz or VOCES[g][0])
+            if voz[0] in usadas:
+                voz = (voz[0], "+10Hz" if g == "F" else "-10Hz")
         usadas.add(voz[0])
         res[p.get("nombre") or p.get("fruta") or f"p{i}"] = list(voz)
     return res

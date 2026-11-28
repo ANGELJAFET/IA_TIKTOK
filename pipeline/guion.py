@@ -15,8 +15,14 @@ Crea una serie de {partes} partes (un video por día). Cada parte debe entenders
 Tema de la serie: {tema}
 
 Reglas:
-- Los personajes SIEMPRE son frutas con personalidad (ej. el Mango galán, la Piña chismosa, el Limón amargado). Define un elenco fijo de 3 a 5 frutas para toda la serie, cada una con "genero" "M" o "F".
-- Historias de drama, comedia, chisme y traiciones, al estilo de las novelas de frutas virales.
+- Los personajes SIEMPRE son frutas con personalidad. Define un elenco fijo de 3 a 5 frutas, cada una con "genero" ("M"/"F")
+  y "pais": código de país latinoamericano (MX, CO, AR, VE, CU, HN, DO, PR, CL, PE, SV, GT). Que sean de PAÍSES DISTINTOS
+  y cada uno hable con la jerga marcada de su país (MX: wey, órale, no manches; CO: parce, qué chimba; AR: che, boludo;
+  VE: chamo, pana; CU: asere; HN: maje, cipote; DO: klk, tíguere; PR: brutal, bro; CL: po, weón; PE: causa, pe).
+- Historias ABSURDAS y exageradas de telenovela: giros ridículos e inesperados (ej. la Piña deja al Mango por un Aguacate
+  que es un vago que solo anda en trocas, el Plátano descubre que su gemelo malvado es un pepino disfrazado, la suegra
+  Toronja se casa con el ex). Mucho drama, chisme, celos y comedia.
+- El humor es sobre los PERSONAJES y sus defectos, nunca burla ni desprecio hacia un país o nacionalidad.
 - Puedes hacer guiños y comparaciones con {referencias} SOLO como humor de cultura pop (ej. "se puso más intenso que concierto de Bad Bunny").
   NUNCA inventes frases, delitos, escándalos ni acusaciones atribuidas a personas reales; nada de apoyar o atacar partidos, candidatos o elecciones; nada de odio ni burlas por nacionalidad.
 - Define UN estilo visual para todas las partes.
@@ -27,7 +33,7 @@ No repitas estas series anteriores: {historial}
 Devuelve SOLO JSON:
 {{
   "serie": "título pegajoso de la serie en español",
-  "elenco": [{{"fruta": "Mango", "nombre": "Don Mango", "genero": "M", "personalidad": "galán presumido", "aspecto": "mango maduro con bigote y lentes de sol"}}],
+  "elenco": [{{"fruta": "Mango", "nombre": "Don Mango", "genero": "M", "pais": "HN", "personalidad": "galán presumido", "aspecto": "mango maduro con bigote y lentes de sol"}}],
   "estilo_visual": "una oración con el estilo visual común",
   "hashtags": ["#tag1", "#tag2"],
   "partes": [{{"titulo": "título de la parte", "enfoque": "qué pasa en esta parte, 1-2 oraciones"}}]
@@ -47,7 +53,10 @@ Reglas:
 - La escena 1 empieza con "Parte {n}." y luego un gancho que detenga el scroll en menos de 14 palabras.{recap}
 - Cada escena tiene "lineas": un NARRADOR (un compa contando el chisme) y DIÁLOGOS de los personajes del elenco hablando en primera persona.
   Usa en "quien" exactamente "Narrador" o el "nombre" de un personaje del elenco. Mezcla narración y diálogo; que los personajes discutan, se reclamen y se rían.
-- TERMINA CADA ORACIÓN (de narrador y personajes) con una de estas muletillas, alternándolas: {muletillas}.
+- El NARRADOR termina cada oración con una de estas muletillas, alternándolas: {muletillas}.
+  Cada PERSONAJE habla con el acento y la jerga MUY marcados de su país ("pais" en el elenco) y termina sus frases con
+  la muletilla típica de su país (MX: wey; CO: parce; AR: che/boludo; VE: chamo; CU: asere; HN: maje; DO: mano; CL: po; PE: pe).
+- La historia es ABSURDA: cada escena debe tener una exageración o un giro ridículo que dé risa.
 - Puedes hacer guiños de humor a {referencias} (comparaciones, referencias a canciones o frases famosas reales),
   pero NUNCA inventes frases, delitos o escándalos de personas reales, ni apoyes o ataques partidos o candidatos.
 - {cierre}

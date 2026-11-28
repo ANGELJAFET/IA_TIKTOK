@@ -1,7 +1,7 @@
 # ===== Configuración del canal =====
 # Cambia el nicho aquí y el resto del pipeline se adapta.
 canal:
-  nicho: "historias de drama y comedia protagonizadas por frutas con personalidad (novelas de frutas), con guiños a la cultura pop latinoamericana"
+  nicho: "telenovelas ABSURDAS y exageradas protagonizadas por frutas de distintos países latinoamericanos, cada una con su acento y jerga, con guiños a la cultura pop latina"
   idioma: "español latinoamericano, tono de compas, muy coloquial"
   publico: "Latinoamérica (México, Centroamérica y Sudamérica), 15-35 años"
   estilo_visual: "3D animated cartoon style like a Pixar movie, anthropomorphic fruit characters with expressive faces, arms and legs, vibrant colors, cinematic lighting, vertical composition"
@@ -56,7 +56,7 @@ video:
 
 # ===== Voz (edge-tts, gratis) =====
 voz:
-  nombre: "es-MX-JorgeNeural"   # otras: es-MX-DaliaNeural, es-CO-GonzaloNeural, es-US-AlonsoNeural
+  nombre: "es-US-AlonsoNeural"   # narrador (neutro); los personajes usan la voz de su país
   velocidad: "+8%"
 
 # ===== TikTok =====
