@@ -1,0 +1,26 @@
+name: Entregar video
+# Copia el video de una ejecución a la rama "entrega" (solo el último, se sobreescribe).
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "ID de la ejecución (vacío = la última de Publicar TikTok)"
+        required: false
+permissions:
+  contents: write
+  actions: read
+jobs:
+  entregar:
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RID="${{ inputs.run_id }}"
+          [ -z "$RID" ] && RID=$(gh run list -R "${{ github.repository }}" -w publicar.yml -s success -L 1 --json databaseId --jq '.[0].databaseId')
+          gh run download "$RID" -R "${{ github.repository }}" -D v
+          mkdir out && cp "$(find v -name final.mp4 | head -1)" out/video.mp4 && cp "$(find v -name guion.json | head -1)" out/guion.json
+          cd out && git init -q && git checkout -q -b entrega
+          git config user.name tiktok-bot && git config user.email bot@users.noreply.github.com
+          git add . && git commit -qm "Video de la ejecución $RID"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" entrega
