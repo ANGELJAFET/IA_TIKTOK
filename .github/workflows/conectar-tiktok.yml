@@ -1,0 +1,46 @@
+name: Conectar TikTok
+
+# Uso: pega en "codigo" el código que muestra callback.html después de autorizar.
+# Cambia el código por un refresh token y lo guarda como secreto TIKTOK_REFRESH_TOKEN
+# (requiere el secreto GH_PAT con permiso Secrets: Read and write). El token nunca se imprime.
+
+on:
+  workflow_dispatch:
+    inputs:
+      codigo:
+        description: "Código que muestra la página después de autorizar"
+        required: true
+        type: string
+
+jobs:
+  conectar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener y guardar token
+        env:
+          CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          CODIGO: ${{ inputs.codigo }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          REDIRECT: https://angeljafet.github.io/IA_TIKTOK/callback.html
+        run: |
+          set -euo pipefail
+          if [ -z "$GH_TOKEN" ]; then echo "::error::Falta el secreto GH_PAT"; exit 1; fi
+          CODIGO_DEC=$(python3 -c "import os,urllib.parse;print(urllib.parse.unquote(os.environ['CODIGO'].strip()))")
+          RESP=$(curl -s -X POST https://open.tiktokapis.com/v2/oauth/token/ \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            --data-urlencode "client_key=$CLIENT_KEY" \
+            --data-urlencode "client_secret=$CLIENT_SECRET" \
+            --data-urlencode "code=$CODIGO_DEC" \
+            --data-urlencode "grant_type=authorization_code" \
+            --data-urlencode "redirect_uri=$REDIRECT")
+          TOKEN=$(echo "$RESP" | python3 -c "import sys,json;print(json.load(sys.stdin).get('refresh_token',''))")
+          if [ -z "$TOKEN" ]; then
+            echo "::error::TikTok no devolvió token:"
+            echo "$RESP" | python3 -c "import sys,json;d=json.load(sys.stdin);print({k:d.get(k) for k in ('error','error_description','log_id')})"
+            exit 1
+          fi
+          echo "::add-mask::$TOKEN"
+          gh secret set TIKTOK_REFRESH_TOKEN --repo "${{ github.repository }}" --body "$TOKEN"
+          SCOPES=$(echo "$RESP" | python3 -c "import sys,json;print(json.load(sys.stdin).get('scope',''))")
+          echo "✅ Cuenta conectada. Permisos: $SCOPES" | tee -a "$GITHUB_STEP_SUMMARY"
