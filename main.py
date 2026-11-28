@@ -240,7 +240,12 @@ def main():
 
     # 3. Montaje
     print("▶ Montaje")
-    final = montaje.montar(trabajo, escenas, cfg, RAIZ / "assets" / "musica")
+    sin_narrador = not cfg["canal"].get("narrador", True)
+    n, tot = g.get("parte", 1), g.get("total", 7)
+    final = montaje.montar(trabajo, escenas, cfg, RAIZ / "assets" / "musica",
+                           texto_inicio=f"Parte {n}" if sin_narrador else "",
+                           texto_final=(f"Sígueme para la parte {n + 1}" if n < tot else "Sígueme para la próxima")
+                           if sin_narrador else "")
     dur = montaje.duracion(final)
     print(f"  video listo: {final} ({dur:.1f}s)")
 

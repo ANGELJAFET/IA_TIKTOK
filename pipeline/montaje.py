@@ -84,7 +84,8 @@ def _ts(s: float) -> str:
     return f"{int(h)}:{int(m):02d}:{sec:05.2f}"
 
 
-def subtitulos_ass(palabras: list[tuple[float, float, str]], destino: Path, w: int, h: int, por_linea: int = 3):
+def subtitulos_ass(palabras: list[tuple[float, float, str]], destino: Path, w: int, h: int, por_linea: int = 3,
+                   textos: list[tuple[float, float, str]] | None = None):
     """Subtítulos grandes, en mayúsculas, de pocas palabras a la vez."""
     cab = f"""[Script Info]
 ScriptType: v4.00+
@@ -95,6 +96,7 @@ WrapStyle: 0
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: TT,DejaVu Sans,84,&H00FFFFFF,&H0000FFFF,&H00000000,&H64000000,-1,0,0,0,100,100,0,0,1,7,3,2,80,80,560,1
+Style: TOP,DejaVu Sans,96,&H0000E5FF,&H0000FFFF,&H00000000,&H64000000,-1,0,0,0,100,100,0,0,1,8,3,8,60,60,180,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -106,10 +108,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         fin = palabras[i + por_linea][0] if i + por_linea < len(palabras) else grupo[-1][1] + 0.3
         texto = " ".join(p[2] for p in grupo).upper().replace("{", "").replace("}", "")
         lineas.append(f"Dialogue: 0,{_ts(ini)},{_ts(fin)},TT,,0,0,0,,{{\\fad(60,0)}}{texto}")
+    for ini, fin, txt in textos or []:
+        lineas.append(f"Dialogue: 1,{_ts(ini)},{_ts(fin)},TOP,,0,0,0,,{{\\fad(150,150)}}{txt.upper()}")
     destino.write_text(cab + "\n".join(lineas) + "\n", encoding="utf-8")
 
 
-def montar(trabajo: Path, escenas: list[dict], cfg: dict, carpeta_musica: Path) -> Path:
+def montar(trabajo: Path, escenas: list[dict], cfg: dict, carpeta_musica: Path,
+           texto_inicio: str = "", texto_final: str = "") -> Path:
     """escenas: [{'imagen': Path, 'audio': Path, 'palabras': [...]}, ...]"""
     v = cfg["video"]
     segmentos, palabras, t = [], [], 0.0
@@ -137,7 +142,13 @@ def montar(trabajo: Path, escenas: list[dict], cfg: dict, carpeta_musica: Path) 
               "-c:a", "aac", "-b:a", "160k", "unido_largo.mp4"], cwd=trabajo)
         (trabajo / "unido_largo.mp4").replace(trabajo / "unido.mp4")
 
-    subtitulos_ass(palabras, trabajo / "subs.ass", v["ancho"], v["alto"])
+    total = duracion(trabajo / "unido.mp4")
+    textos = []
+    if texto_inicio:
+        textos.append((0, 2.8, texto_inicio))
+    if texto_final:
+        textos.append((max(0, total - 3.5), total, texto_final))
+    subtitulos_ass(palabras, trabajo / "subs.ass", v["ancho"], v["alto"], textos=textos)
 
     musicas = sorted(carpeta_musica.glob("*.mp3")) if carpeta_musica.exists() else []
     final = trabajo / "final.mp4"

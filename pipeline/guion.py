@@ -44,8 +44,7 @@ Adelanto de la siguiente parte: {siguiente}
 
 Reglas:
 - Exactamente {escenas} escenas. Narración total de AL MENOS {palabras} palabras (el video debe durar más de 1 minuto), unas 30 palabras por escena.
-- La escena 1 empieza con "Parte {n}." y luego un gancho que detenga el scroll en menos de 14 palabras.{recap}
-- Cada escena tiene "lineas": DIÁLOGOS de los personajes en primera persona y, como mucho, UNA línea corta del NARRADOR.
+{reglas_lineas}
   Usa en "quien" exactamente "Narrador" o el "nombre" de un personaje del elenco.
 {reglas_parte}
 - {cierre}
@@ -120,7 +119,22 @@ def planear_serie(client: genai.Client, cfg: dict, tema: str | None, historial: 
     return plan
 
 
+def _reglas_lineas(cfg: dict, n: int) -> str:
+    recap = "" if n == 1 else " Puede conectar en pocas palabras con la parte anterior."
+    if cfg["canal"].get("narrador", True):
+        return (f'- La escena 1 empieza con "Parte {n}." y luego un gancho que detenga el scroll en menos de 14 palabras.{recap}\n'
+                '- Cada escena tiene "lineas": DIÁLOGOS de los personajes en primera persona y, como mucho, UNA línea corta del NARRADOR.')
+    return ('- SIN NARRADOR: la historia se cuenta SOLO con diálogos de los personajes. Nunca uses "Narrador" en "quien".\n'
+            f'- La primera línea de la escena 1 es un gancho dicho por un personaje que detenga el scroll (menos de 14 palabras).{recap}\n'
+            '- No digas "Parte N" en voz: el número de parte se muestra como texto en pantalla.')
+
+
 def _cierre(cfg: dict, n: int, ultima: bool) -> str:
+    if not cfg["canal"].get("narrador", True):
+        if ultima:
+            return "La última escena cierra la serie con un giro final inesperado dicho por un personaje que deja una pregunta abierta."
+        return ("La última escena termina en SUSPENSO MÁXIMO con la línea de un personaje: una revelación cortada a la mitad, "
+                "sin resolverla. No pidas que te sigan en voz: eso se muestra en pantalla.")
     cta = cfg.get("cta", {})
     if ultima:
         txt = ("La última escena resuelve la serie PERO termina con un giro final inesperado que deja una pregunta "
@@ -148,7 +162,7 @@ def generar_parte(client: genai.Client, cfg: dict, plan: dict) -> dict:
         anteriores=" | ".join(plan["resumenes"]) or "ninguna (esta es la primera parte)",
         siguiente="ninguna — este es el final" if ultima else plan["partes"][n]["titulo"],
         escenas=v["escenas"], palabras=v["palabras_objetivo"], estilo=plan["estilo_visual"],
-        recap="" if n == 1 else " La escena 1 puede conectar en pocas palabras con la parte anterior.",
+        reglas_lineas=_reglas_lineas(cfg, n),
         elenco=json.dumps(plan.get("elenco", []), ensure_ascii=False),
         nicho=cfg["canal"]["nicho"],
         reglas_parte=cfg["canal"].get("reglas_parte", "").rstrip(),
@@ -160,12 +174,16 @@ def generar_parte(client: genai.Client, cfg: dict, plan: dict) -> dict:
     g = _pedir_json(client, cfg["modelos"]["texto"], prompt,
                     lambda d: len(d.get("escenas", [])) >= 2 and palabras(d) >= minimo)
     g["escenas"] = g["escenas"][: v["escenas"]]
+    sin_narrador = not cfg["canal"].get("narrador", True)
     for e in g["escenas"]:
         if not e.get("lineas"):
             e["lineas"] = [{"quien": "Narrador", "texto": e.get("narracion", "")}]
+        if sin_narrador:
+            e["lineas"] = [l for l in e["lineas"] if (l.get("quien") or "").strip().lower() != "narrador"] or e["lineas"]
         e["narracion"] = " ".join(l.get("texto", "") for l in e["lineas"])
     g["titulo"] = f"{plan['serie']} — Parte {n}/{total}: {g['titulo']}"
     g["hashtags"] = plan.get("hashtags", [])
     g["tema"] = f"{plan['serie']} (parte {n}/{total})"
     g["parte"] = n
+    g["total"] = total
     return g

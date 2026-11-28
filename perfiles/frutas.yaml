@@ -2,6 +2,7 @@
 # Se usa con:  python main.py --perfil frutas   (o en Actions → Publicar TikTok → perfil: frutas)
 # Todo lo que no esté aquí se toma de config.yaml.
 canal:
+  narrador: false   # sin narrador: solo diálogos; "Parte N" y "Sígueme" salen como texto en pantalla
   nicho: "telenovelas ABSURDAS y exageradas protagonizadas por frutas de distintos países latinoamericanos, cada una con su acento y jerga, con guiños a la cultura pop latina"
   idioma: "español latinoamericano, tono de compas, muy coloquial"
   publico: "Latinoamérica (México, Centroamérica y Sudamérica), 15-35 años"
@@ -15,8 +16,6 @@ canal:
     - Guiños a cantantes y famosos latinos SOLO como humor de cultura pop; nunca inventar frases, delitos o escándalos
       de personas reales, ni apoyar o atacar partidos o candidatos.
   reglas_parte: |
-    - El NARRADOR (un compa contando el chisme) termina cada oración con "wey" o "bro", alternándolos. Habla poco:
-      como mucho una línea corta por escena; la historia avanza con los diálogos.
     - Cada PERSONAJE habla con el acento y la jerga MUY marcados de su país ("pais" en el elenco) y termina CADA oración
       con la muletilla de su país (MX: wey; CO: parce; AR: che/boludo; VE: chamo; CU: asere; HN: maje; DO: mano;
       PR: bro; CL: po; PE: pe; CR: mae; PA: loco; NI: chele; SV: cerote; GT: vos).
