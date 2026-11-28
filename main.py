@@ -109,6 +109,11 @@ def main():
     if args.solo_estadisticas:
         return
 
+    # Pausa: no se genera nada automáticamente (no se gastan créditos)
+    if os.environ.get("GITHUB_EVENT_NAME") == "schedule" and cfg.get("pausado"):
+        print("▶ Generación automática en PAUSA (config.yaml → pausado: true). No se gasta nada.")
+        return
+
     # Frecuencia según vistas totales: solo genera (y gasta créditos) cuando toca
     if os.environ.get("GITHUB_EVENT_NAME") == "schedule" and not toca_video(cfg, historial):
         return

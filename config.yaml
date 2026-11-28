@@ -1,3 +1,7 @@
+# ===== PAUSA =====
+# true = no se genera ningún video automático (no se gastan créditos). Pon false para reanudar.
+pausado: true
+
 # ===== Configuración del canal =====
 # Cambia el nicho aquí y el resto del pipeline se adapta.
 canal:
