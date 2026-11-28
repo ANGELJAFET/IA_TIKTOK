@@ -1,4 +1,3 @@
 # Cola de temas para las próximas SERIES (opcional). Una idea por línea; cada una se vuelve una serie de 7 días.
 # Si está vacía, Gemini inventa el tema solo sin repetir los anteriores.
-The town in Alaska where everyone lives in one building
 What would happen if the Moon disappeared

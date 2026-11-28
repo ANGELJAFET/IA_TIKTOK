@@ -1,0 +1,45 @@
+{
+  "serie": "The Town Under One Roof: Life in Whittier, Alaska",
+  "estilo_visual": "High-contrast, cinematic dark-mode aesthetic featuring archival footage overlays, moody blue color grading, and crisp white minimalist kinetic typography. cinematic, photorealistic, dramatic lighting, high detail, vertical composition",
+  "hashtags": [
+    "#whittieralaska",
+    "#begichowers",
+    "#mindblowingfacts",
+    "#alaskalife",
+    "#mystery"
+  ],
+  "partes": [
+    {
+      "titulo": "The Town Where Everyone Lives in One Building",
+      "enfoque": "Introduces the Begich Towers in Whittier, Alaska, where nearly the entire population resides in a single 14-story former military barracks."
+    },
+    {
+      "titulo": "The Cold War Secret Behind the Walls",
+      "enfoque": "Explains how the building was originally constructed as a secret military port during the Cold War to defend against potential invasions."
+    },
+    {
+      "titulo": "How You Get In (And Out)",
+      "enfoque": "Reveals the claustrophobic reality of entering the town through a single, one-lane tunnel that closes every night, effectively locking the residents in."
+    },
+    {
+      "titulo": "The Convenience of Indoor Living",
+      "enfoque": "Highlights how the building contains everything from a police station and a post office to a church, meaning residents never have to step outside to survive."
+    },
+    {
+      "titulo": "Life in Total Isolation",
+      "enfoque": "Discusses the psychological impact of the 'Alaskan cabin fever' and the extreme weather that forces neighbors to live in permanent close quarters."
+    },
+    {
+      "titulo": "The Dark Side of the Towers",
+      "enfoque": "Explores the maintenance struggles, the lack of private space, and the eerie history of the abandoned structures surrounding the main towers."
+    },
+    {
+      "titulo": "Why They Never Leave",
+      "enfoque": "Concludes with the shocking reason why people choose to stay in this isolated, concrete monolith despite the harsh conditions and lack of personal freedom."
+    }
+  ],
+  "parte_actual": 1,
+  "resumenes": [
+    "Introduces Whittier, Alaska, where nearly every resident lives inside the Begich Towers."
+  ]
+}
