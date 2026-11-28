@@ -37,7 +37,7 @@ modelos:
 
 # ===== Video =====
 video:
-  escenas: 9              # imágenes por video (≈ $0.034 c/u)
+  escenas: 6              # imágenes por video (≈ $0.034 c/u). 6 = ahorro; cada imagen dura ~11 s con movimiento
   palabras_objetivo: 175  # ≈ 65-70 s de narración (TikTok paga solo videos de +1 minuto)
   duracion_minima: 62      # segundos; si queda más corto se alarga la última escena
   ancho: 1080
@@ -71,4 +71,4 @@ panel:
   # Creator Rewards suele pagar ~0.40–1.00 USD por 1000 vistas válidas, pero exige videos de +1 minuto
   # y 10,000 seguidores. Pon 0 si aún no estás en un programa de pago.
   usd_por_1000_vistas: 0.5
-  costo_por_video_usd: 0.31   # gasto aproximado en Gemini por video
+  costo_por_video_usd: 0.21   # gasto aproximado en Gemini por video

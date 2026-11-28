@@ -43,7 +43,7 @@ Partes anteriores (para continuidad, no las repitas): {anteriores}
 Adelanto de la siguiente parte: {siguiente}
 
 Reglas:
-- Exactamente {escenas} escenas. Narración total de AL MENOS {palabras} palabras (el video debe durar más de 1 minuto), unas 20 palabras por escena.
+- Exactamente {escenas} escenas. Narración total de AL MENOS {palabras} palabras (el video debe durar más de 1 minuto), unas 30 palabras por escena.
 - La escena 1 empieza con "Parte {n}." y luego un gancho que detenga el scroll en menos de 14 palabras.{recap}
 - Habla como un compa contando un chisme. TERMINA CADA ORACIÓN con una de estas muletillas, alternándolas: {muletillas}.
 - Puedes hacer guiños de humor a {referencias} (comparaciones, referencias a canciones o frases famosas reales),
