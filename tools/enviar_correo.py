@@ -28,7 +28,8 @@ msg["To"] = destino
 if estado == "success" and finales:
     final = finales[-1]
     g = json.loads((final.parent / "guion.json").read_text(encoding="utf-8"))
-    cfg_tags = ["#facts", "#didyouknow", "#learnontiktok", "#mindblown"]
+    import yaml
+    cfg_tags = yaml.safe_load((RAIZ / "config.yaml").read_text(encoding="utf-8"))["canal"]["hashtags_base"]
     tags = list(dict.fromkeys(g.get("hashtags", []) + cfg_tags))
     descripcion = f"{g['titulo']} {' '.join(tags)}"
     msg["Subject"] = f"🎬 Video listo: {g.get('tema', 'Fact Drop')}"

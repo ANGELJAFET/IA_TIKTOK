@@ -6,51 +6,57 @@ import time
 from google import genai
 from google.genai import types
 
-PROMPT_SERIE = """You plan multi-part TikTok series for a faceless channel.
-Niche: {nicho}
-Audience: {publico}
-Language: {idioma}
+PROMPT_SERIE = """Planeas series virales de TikTok para un canal sin rostro.
+Formato del canal: {nicho}
+Público: {publico}
+Idioma de todo el contenido: {idioma}
 
-Create a {partes}-part series. One video per day; each part must stand alone but make viewers want the next one.
-Series theme: {tema}
-(If the theme is in another language or very broad, turn it into a specific, gripping English series for this niche.)
+Crea una serie de {partes} partes (un video por día). Cada parte debe entenderse sola pero dejar con ganas de la siguiente (cliffhanger).
+Tema de la serie: {tema}
 
-Rules:
-- Facts must be TRUE and widely verifiable.
-- Each part covers a DIFFERENT angle/story; build toward the most shocking part at the end.
-- Define ONE visual style that all parts will share so the series looks consistent.
+Reglas:
+- Los personajes SIEMPRE son frutas con personalidad (ej. el Mango galán, la Piña chismosa, el Limón amargado). Define un elenco fijo de 3 a 5 frutas para toda la serie.
+- Historias de drama, comedia, chisme y traiciones, al estilo de las novelas de frutas virales.
+- Puedes hacer guiños y comparaciones con {referencias} SOLO como humor de cultura pop (ej. "se puso más intenso que concierto de Bad Bunny").
+  NUNCA inventes frases, delitos, escándalos ni acusaciones atribuidas a personas reales; nada de apoyar o atacar partidos, candidatos o elecciones; nada de odio ni burlas por nacionalidad.
+- Define UN estilo visual para todas las partes.
 
-Do NOT repeat these previous series: {historial}
+No repitas estas series anteriores: {historial}
 {aprendizaje}
 
-Return ONLY JSON:
+Devuelve SOLO JSON:
 {{
-  "serie": "catchy series title in English",
-  "estilo_visual": "one sentence visual style for every image in the series",
+  "serie": "título pegajoso de la serie en español",
+  "elenco": [{{"fruta": "Mango", "nombre": "Don Mango", "personalidad": "galán presumido", "aspecto": "mango maduro con bigote y lentes de sol"}}],
+  "estilo_visual": "una oración con el estilo visual común",
   "hashtags": ["#tag1", "#tag2"],
-  "partes": [{{"titulo": "part title", "enfoque": "what this part reveals, 1-2 sentences"}}]
+  "partes": [{{"titulo": "título de la parte", "enfoque": "qué pasa en esta parte, 1-2 oraciones"}}]
 }}"""
 
-PROMPT_PARTE = """You are a viral TikTok scriptwriter for a faceless channel.
-Audience: {publico}. Language: {idioma}.
+PROMPT_PARTE = """Eres guionista de videos virales de TikTok para un canal sin rostro de novelas de frutas.
+Público: {publico}. Idioma: {idioma}.
 
-Series: "{serie}" — this is PART {n} OF {total}.
-This part: {titulo} — {enfoque}
-Previous parts (for continuity, do not repeat their facts): {anteriores}
-Next part teaser: {siguiente}
+Serie: "{serie}" — esta es la PARTE {n} DE {total}.
+Elenco fijo (úsalo igual en todas las partes): {elenco}
+Esta parte: {titulo} — {enfoque}
+Partes anteriores (para continuidad, no las repitas): {anteriores}
+Adelanto de la siguiente parte: {siguiente}
 
-Rules:
-- Exactly {escenas} scenes. Total narration AT LEAST {palabras} words (the video must last over 1 minute), about 20 words per scene.
-- Scene 1 starts with "Part {n}." then a scroll-stopping hook in under 14 words.{recap}
+Reglas:
+- Exactamente {escenas} escenas. Narración total de AL MENOS {palabras} palabras (el video debe durar más de 1 minuto), unas 20 palabras por escena.
+- La escena 1 empieza con "Parte {n}." y luego un gancho que detenga el scroll en menos de 14 palabras.{recap}
+- Habla como un compa contando un chisme. TERMINA CADA ORACIÓN con una de estas muletillas, alternándolas: {muletillas}.
+- Puedes hacer guiños de humor a {referencias} (comparaciones, referencias a canciones o frases famosas reales),
+  pero NUNCA inventes frases, delitos o escándalos de personas reales, ni apoyes o ataques partidos o candidatos.
 - {cierre}
-- Facts must be TRUE and widely verifiable. No made-up numbers. Simple, punchy sentences.
-- For each scene write an image prompt in English using this style: {estilo}. No text, letters or logos. No real famous people's faces.
-- For each scene also write "busqueda": a 2-4 word English search query to find matching STOCK FOOTAGE (concrete, filmable things, e.g. "dark forest fog", "ancient roman ruins", "close up eye").
+- Para cada escena escribe un prompt de imagen EN INGLÉS con este estilo: {estilo}. Describe las frutas del elenco por su aspecto.
+  Sin texto, letras ni logos en la imagen. NO dibujes personas reales ni sus caras: solo frutas.
+- Para cada escena escribe también "busqueda": 2-4 palabras EN INGLÉS para buscar video de stock relacionado (ej. "mango fruit closeup").
 
-Return ONLY JSON:
+Devuelve SOLO JSON:
 {{
-  "titulo": "TikTok caption, max 110 chars, with 1 emoji (do not add the part number)",
-  "resumen": "one sentence summary of what this part revealed",
+  "titulo": "descripción para TikTok, máx. 110 caracteres, con 1 emoji (sin el número de parte)",
+  "resumen": "una oración con lo que pasó en esta parte",
   "escenas": [{{"narracion": "...", "imagen": "...", "busqueda": "..."}}]
 }}"""
 
@@ -97,9 +103,10 @@ def planear_serie(client: genai.Client, cfg: dict, tema: str | None, historial: 
                   aprendizaje: str = "") -> dict:
     canal = cfg["canal"]
     partes = cfg["serie"]["partes"]
-    tema = tema or f"pick a fresh, specific and surprising topic within: {canal['nicho']}"
+    tema = tema or f"elige una historia nueva, específica y muy chismosa dentro de: {canal['nicho']}"
     prompt = PROMPT_SERIE.format(
         nicho=canal["nicho"], publico=canal["publico"], idioma=canal["idioma"], partes=partes,
+        referencias=canal.get("referencias", "famosos"),
         tema=tema, historial="; ".join(historial[-60:]) or "none", aprendizaje=aprendizaje,
     )
     plan = _pedir_json(client, cfg["modelos"]["texto"], prompt,
@@ -114,13 +121,13 @@ def planear_serie(client: genai.Client, cfg: dict, tema: str | None, historial: 
 def _cierre(cfg: dict, n: int, ultima: bool) -> str:
     cta = cfg.get("cta", {})
     if ultima:
-        txt = "Last scene wraps up the whole series and says: \"Follow for the next series.\""
+        txt = "La última escena cierra toda la serie y dice: \"Sígueme para la próxima novela.\""
     else:
-        txt = f"Last scene teases part {n + 1} and says: \"Follow so you don't miss part {n + 1} tomorrow.\""
+        txt = f"La última escena deja en suspenso la parte {n + 1} y dice: \"Sígueme para no perderte la parte {n + 1} mañana.\""
         if cta.get("comentar_parte"):
-            txt += f" Also ask viewers to comment \"PART {n + 1}\" if they want it."
+            txt += f" También pide que comenten \"PARTE {n + 1}\" si la quieren."
     if cta.get("apoyo"):
-        txt += f" End with this exact short line: \"{cta['apoyo']}\""
+        txt += f" Termina con esta frase exacta: \"{cta['apoyo']}\""
     return txt
 
 
@@ -133,10 +140,13 @@ def generar_parte(client: genai.Client, cfg: dict, plan: dict) -> dict:
     prompt = PROMPT_PARTE.format(
         publico=cfg["canal"]["publico"], idioma=cfg["canal"]["idioma"],
         serie=plan["serie"], n=n, total=total, titulo=p["titulo"], enfoque=p["enfoque"],
-        anteriores=" | ".join(plan["resumenes"]) or "none (this is the first part)",
-        siguiente="none — this is the finale" if ultima else plan["partes"][n]["titulo"],
+        anteriores=" | ".join(plan["resumenes"]) or "ninguna (esta es la primera parte)",
+        siguiente="ninguna — este es el final" if ultima else plan["partes"][n]["titulo"],
         escenas=v["escenas"], palabras=v["palabras_objetivo"], estilo=plan["estilo_visual"],
-        recap="" if n == 1 else " Scene 1 may briefly connect to the previous part in a few words.",
+        recap="" if n == 1 else " La escena 1 puede conectar en pocas palabras con la parte anterior.",
+        elenco=json.dumps(plan.get("elenco", []), ensure_ascii=False),
+        muletillas=", ".join(f'"{m}"' for m in cfg["canal"].get("muletillas", [])) or "ninguna",
+        referencias=cfg["canal"].get("referencias", "famosos"),
         cierre=_cierre(cfg, n, ultima),
     )
     minimo = int(v["palabras_objetivo"] * 0.9)
@@ -144,8 +154,8 @@ def generar_parte(client: genai.Client, cfg: dict, plan: dict) -> dict:
     g = _pedir_json(client, cfg["modelos"]["texto"], prompt,
                     lambda d: len(d.get("escenas", [])) >= 2 and palabras(d) >= minimo)
     g["escenas"] = g["escenas"][: v["escenas"]]
-    g["titulo"] = f"{plan['serie']} — Part {n}/{total}: {g['titulo']}"
+    g["titulo"] = f"{plan['serie']} — Parte {n}/{total}: {g['titulo']}"
     g["hashtags"] = plan.get("hashtags", [])
-    g["tema"] = f"{plan['serie']} (part {n}/{total})"
+    g["tema"] = f"{plan['serie']} (parte {n}/{total})"
     g["parte"] = n
     return g
