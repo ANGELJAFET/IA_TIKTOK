@@ -26,6 +26,11 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "$GH_TOKEN" ]; then echo "::error::Falta el secreto GH_PAT"; exit 1; fi
+          # Comprobar ANTES de gastar el código que GH_PAT puede escribir secretos
+          if ! gh secret set GH_PAT_OK --repo "${{ github.repository }}" --body ok; then
+            echo "::error::GH_PAT no tiene permiso 'Secrets: Read and write'. El código de TikTok NO se gastó; corrige el permiso y vuelve a usar el mismo código."
+            exit 1
+          fi
           CODIGO_DEC=$(python3 -c "import os,urllib.parse;print(urllib.parse.unquote(os.environ['CODIGO'].strip()))")
           RESP=$(curl -s -X POST https://open.tiktokapis.com/v2/oauth/token/ \
             -H "Content-Type: application/x-www-form-urlencoded" \
