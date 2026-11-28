@@ -120,6 +120,16 @@ def montar(trabajo: Path, escenas: list[dict], cfg: dict, carpeta_musica: Path) 
     lista.write_text("".join(f"file '{s.name}'\n" for s in segmentos))
     _run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", "lista.txt", "-c", "copy", "unido.mp4"], cwd=trabajo)
 
+    # Garantizar la duración mínima (TikTok solo paga videos de más de 1 minuto)
+    minimo = v.get("duracion_minima", 0)
+    if t < minimo:
+        extra = minimo - t + 0.2
+        print(f"  video de {t:.1f}s: se alarga {extra:.1f}s para pasar de {minimo}s")
+        _run(["ffmpeg", "-y", "-i", "unido.mp4", "-vf", f"tpad=stop_mode=clone:stop_duration={extra:.2f}",
+              "-af", f"apad=pad_dur={extra:.2f}", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+              "-c:a", "aac", "-b:a", "160k", "unido_largo.mp4"], cwd=trabajo)
+        (trabajo / "unido_largo.mp4").replace(trabajo / "unido.mp4")
+
     subtitulos_ass(palabras, trabajo / "subs.ass", v["ancho"], v["alto"])
 
     musicas = sorted(carpeta_musica.glob("*.mp3")) if carpeta_musica.exists() else []

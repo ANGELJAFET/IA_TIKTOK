@@ -40,7 +40,7 @@ Previous parts (for continuity, do not repeat their facts): {anteriores}
 Next part teaser: {siguiente}
 
 Rules:
-- Exactly {escenas} scenes. Total narration about {palabras} words.
+- Exactly {escenas} scenes. Total narration AT LEAST {palabras} words (the video must last over 1 minute), about 20 words per scene.
 - Scene 1 starts with "Part {n}." then a scroll-stopping hook in under 14 words.{recap}
 - {cierre}
 - Facts must be TRUE and widely verifiable. No made-up numbers. Simple, punchy sentences.
@@ -139,7 +139,10 @@ def generar_parte(client: genai.Client, cfg: dict, plan: dict) -> dict:
         recap="" if n == 1 else " Scene 1 may briefly connect to the previous part in a few words.",
         cierre=_cierre(cfg, n, ultima),
     )
-    g = _pedir_json(client, cfg["modelos"]["texto"], prompt, lambda d: len(d.get("escenas", [])) >= 2)
+    minimo = int(v["palabras_objetivo"] * 0.9)
+    palabras = lambda d: sum(len(e.get("narracion", "").split()) for e in d.get("escenas", []))
+    g = _pedir_json(client, cfg["modelos"]["texto"], prompt,
+                    lambda d: len(d.get("escenas", [])) >= 2 and palabras(d) >= minimo)
     g["escenas"] = g["escenas"][: v["escenas"]]
     g["titulo"] = f"{plan['serie']} — Part {n}/{total}: {g['titulo']}"
     g["hashtags"] = plan.get("hashtags", [])
