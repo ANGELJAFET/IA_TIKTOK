@@ -1,9 +1,9 @@
 name: Actualizar estadísticas
 
-# Refresca vistas/likes/comentarios para el panel cada 6 horas (no gasta Gemini).
+# Refresca vistas/likes/comentarios para el panel cada hora (no gasta créditos de Google).
 on:
   schedule:
-    - cron: "23 */6 * * *"
+    - cron: "23 * * * *"
   workflow_dispatch:
 
 permissions:

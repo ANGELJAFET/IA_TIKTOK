@@ -1,6 +1,6 @@
 # ===== PAUSA =====
 # true = no se genera ningún video automático (no se gastan créditos). Pon false para reanudar.
-pausado: true
+pausado: false
 
 # ===== Configuración del canal =====
 # Cambia el nicho aquí y el resto del pipeline se adapta.
@@ -21,7 +21,9 @@ canal:
     - Nombres coreanos (Seo-yeon, Ha-eun, Do-hyun, Jin-woo...), nombres de técnicas épicos ("Espada de las Nueve Nubes").
   # Reglas para escribir cada parte
   reglas_parte: |
-    - El NARRADOR cuenta como recap de manhwa, épico y con ritmo rápido ("Pero nadie sabía que...", "Ese fue su peor error.").
+    - La historia avanza sobre todo con DIÁLOGOS: al menos el 70% de las líneas son de personajes.
+      El NARRADOR casi no interrumpe: solo una frase corta para abrir, transiciones breves y el cierre en suspenso
+      (máximo 1 línea de narrador por escena, de 15 palabras o menos).
     - Los personajes hablan como en manhwa: el arrogante presume, el viejo maestro es sabio, la protagonista es fría y segura.
     - Peleas descritas con impacto: movimientos, nombres de técnicas, la reacción de los testigos ("¡¿Qué?! ¡Imposible!").
     - Sin groserías fuertes; violencia de artes marciales sin sangre explícita.
@@ -42,9 +44,7 @@ cta:
 # ===== Frecuencia (según vistas totales del canal) =====
 # El cron corre todos los días, pero solo genera (y gasta créditos) cuando toca.
 frecuencia:
-  - {desde_vistas: 0,    cada_dias: 3}
-  - {desde_vistas: 1000, cada_dias: 2}
-  - {desde_vistas: 5000, cada_dias: 1}
+  - {desde_vistas: 0, cada_dias: 3}   # siempre cada 3 días
 
 # ===== Visuales =====
 # "pexels" -> videos de stock reales, GRATIS (necesita PEXELS_API_KEY)
@@ -102,4 +102,6 @@ panel:
   # Creator Rewards suele pagar ~0.40–1.00 USD por 1000 vistas válidas, pero exige videos de +1 minuto
   # y 10,000 seguidores. Pon 0 si aún no estás en un programa de pago.
   usd_por_1000_vistas: 0.5
+  minimo_retiro_usd: 10        # TikTok exige un saldo mínimo para retirar; ajústalo si TikTok te muestra otro
+  pico_crecimiento_pct: 5      # si un video crece menos de esto en 48 h, se considera en su punto máximo
   costo_por_video_usd: 0.21   # gasto aproximado en Gemini por video

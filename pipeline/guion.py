@@ -45,7 +45,7 @@ Adelanto de la siguiente parte: {siguiente}
 Reglas:
 - Exactamente {escenas} escenas. Narración total de AL MENOS {palabras} palabras (el video debe durar más de 1 minuto), unas 30 palabras por escena.
 - La escena 1 empieza con "Parte {n}." y luego un gancho que detenga el scroll en menos de 14 palabras.{recap}
-- Cada escena tiene "lineas": un NARRADOR y DIÁLOGOS de los personajes del elenco hablando en primera persona.
+- Cada escena tiene "lineas": DIÁLOGOS de los personajes en primera persona y, como mucho, UNA línea corta del NARRADOR.
   Usa en "quien" exactamente "Narrador" o el "nombre" de un personaje del elenco.
 {reglas_parte}
 - {cierre}

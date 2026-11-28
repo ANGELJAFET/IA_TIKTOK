@@ -57,6 +57,11 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
 .ok{color:var(--good)} .err{color:var(--critical)} .pend{color:var(--warn)}
 .empty{padding:28px;text-align:center;color:var(--text-secondary)}
 .note{font-size:.75rem;color:var(--text-secondary);margin-top:8px}
+.aviso{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:10px;border:1px solid var(--border);margin-bottom:12px}
+.aviso .ic{font-size:1.4rem;line-height:1}
+.aviso b{display:block;margin-bottom:2px}
+.barra{height:8px;border-radius:99px;background:var(--grid);overflow:hidden;margin:6px 0 2px}
+.barra i{display:block;height:100%;background:var(--series-1);border-radius:99px}
 section{margin-bottom:16px}
 </style>
 </head>
@@ -69,6 +74,11 @@ section{margin-bottom:16px}
   </header>
 
   <div class="kpis" id="kpis"></div>
+
+  <section class="card" id="cobro-card">
+    <h2>💰 ¿Cuándo cobrar?</h2>
+    <div id="cobro"></div>
+  </section>
 
   <div class="grid2">
     <div class="card">
@@ -110,8 +120,9 @@ async function getConfig(){
   try{
     const t = await (await fetch(RAW+"config.yaml?t="+Date.now())).text();
     const num = k => { const m = t.match(new RegExp(k+":\\s*([0-9.]+)")); return m ? parseFloat(m[1]) : null; };
-    return { rpm: num("usd_por_1000_vistas") ?? 0, costo: num("costo_por_video_usd") ?? 0.14 };
-  }catch{ return {rpm:0,costo:0.14}; }
+    return { rpm: num("usd_por_1000_vistas") ?? 0, costo: num("costo_por_video_usd") ?? 0.21,
+             minimo: num("minimo_retiro_usd") ?? 10, pico: num("pico_crecimiento_pct") ?? 5 };
+  }catch{ return {rpm:0,costo:0.21,minimo:10,pico:5}; }
 }
 
 function kpis(videos, historial, cfg){
@@ -133,6 +144,52 @@ function kpis(videos, historial, cfg){
     `<div class="card kpi"><div class="label">${l}</div><div class="value">${v}</div><div class="sub">${s}</div></div>`).join("");
   document.getElementById("nota-ingresos").textContent =
     "Los ingresos son un estimado: TikTok no comparte los pagos reales por su API. Ajusta el valor en config.yaml → panel.usd_por_1000_vistas. Los programas de pago de TikTok exigen videos de más de 1 minuto y un mínimo de seguidores.";
+}
+
+function estadoVideo(v, hist, cfg){
+  const pts = hist[v.id] || [], ahora = Date.now()/1000;
+  const edadDias = (ahora - v.fecha)/86400;
+  const elegible = (v.duracion||0) >= 60;
+  const ganancia = elegible ? v.vistas/1000*cfg.rpm : 0;
+  let antes = null;
+  for(const [t,vis] of pts){ if(t <= ahora - 48*3600) antes = vis; }
+  const crec = antes ? (v.vistas-antes)/Math.max(antes,1)*100 : null;
+  const pico = edadDias >= 3 && crec !== null && crec < cfg.pico;
+  return {elegible, ganancia, crec, pico, edadDias};
+}
+
+function cobro(videos, hist, cfg){
+  const el = document.getElementById("cobro");
+  const est = videos.map(v=>({v, ...estadoVideo(v, hist, cfg)}));
+  const saldo = est.reduce((a,e)=>a+e.ganancia,0);
+  const conGanancia = est.filter(e=>e.ganancia>0);
+  const enPico = conGanancia.filter(e=>e.pico);
+  const pctPico = conGanancia.length ? enPico.reduce((a,e)=>a+e.ganancia,0)/Math.max(saldo,1e-9)*100 : 0;
+  const prog = Math.min(100, saldo/cfg.minimo*100);
+  let ic, titulo, texto;
+  if(!cfg.rpm){
+    ic="⏸"; titulo="Aún no estás en un programa de pago";
+    texto="Cuando TikTok te acepte en su programa de recompensas, pon cuánto te pagan por 1000 vistas en config.yaml y aquí verás cuándo conviene retirar.";
+  } else if(saldo < cfg.minimo){
+    ic="⏳"; titulo=`Todavía no: llevas ${usd.format(saldo)} estimados de ${usd.format(cfg.minimo)} mínimos`;
+    texto=`Faltan ${usd.format(cfg.minimo-saldo)} (≈ ${nf.format(Math.ceil((cfg.minimo-saldo)/cfg.rpm*1000))} vistas más en videos de más de 1 minuto).`;
+  } else if(pctPico >= 70){
+    ic="✅"; titulo=`¡Buen momento para retirar! Saldo estimado: ${usd.format(saldo)}`;
+    texto=`El ${Math.round(pctPico)}% de lo ganado viene de videos que ya llegaron a su punto máximo (crecen menos de ${cfg.pico}% en 48 h). Esperar ya casi no suma.`;
+  } else {
+    ic="📈"; titulo=`Ya puedes retirar ${usd.format(saldo)}, pero tus videos siguen creciendo`;
+    texto=`Solo el ${Math.round(pctPico)}% de lo ganado está en videos que ya tocaron su pico. Si esperas unos días el saldo puede subir más.`;
+  }
+  const filas = est.filter(e=>e.elegible).sort((a,b)=>b.ganancia-a.ganancia).slice(0,8).map(e=>`
+    <tr><td>${esc((e.v.titulo||"").slice(0,60))}</td><td class="n">${nf.format(e.v.vistas)}</td>
+    <td class="n">${usd.format(e.ganancia)}</td>
+    <td>${e.edadDias<3?'<span class="badge pend">• Muy nuevo</span>':e.crec===null?'<span class="badge pend">• Midiendo</span>':e.pico?'<span class="badge ok">✔ En su pico</span>':`<span class="badge">📈 +${e.crec.toFixed(0)}% en 48 h</span>`}</td></tr>`).join("");
+  el.innerHTML = `
+    <div class="aviso"><div class="ic">${ic}</div><div><b>${titulo}</b><span class="muted">${texto}</span></div></div>
+    ${cfg.rpm?`<div class="muted">Progreso hacia el mínimo de retiro</div><div class="barra"><i style="width:${prog}%"></i></div>`:""}
+    ${filas?`<table style="margin-top:12px"><thead><tr><th>Video</th><th class="n">Vistas</th><th class="n">Ganancia est.</th><th>Estado</th></tr></thead><tbody>${filas}</tbody></table>`
+           :'<div class="empty">Aquí aparecerá cada video de más de 1 minuto con lo que lleva ganado y si ya llegó a su pico.</div>'}
+    <p class="note">Estimado con las vistas: TikTok no da el saldo real por su API. Para cobrar necesitas estar en su programa de recompensas (pide seguidores y vistas mínimas) y los videos deben durar más de 1 minuto.</p>`;
 }
 
 function chart(videos){
@@ -205,13 +262,13 @@ function ejecuciones(hist){
 }
 
 (async()=>{
-  const [vid, hist, rend, cfg] = await Promise.all([
+  const [vid, hist, rend, cfg, histV] = await Promise.all([
     getJSON("data/videos.json",{videos:[],actualizado:0}), getJSON("data/historial.json",[]),
-    getJSON("data/rendimiento.json",[]), getConfig()]);
+    getJSON("data/rendimiento.json",[]), getConfig(), getJSON("data/historico_vistas.json",{})]);
   const videos = vid.videos||[];
   document.getElementById("actualizado").textContent = vid.actualizado
     ? "Estadísticas actualizadas: "+new Date(vid.actualizado*1000).toLocaleString("es-HN") : "Estadísticas: aún sin datos de TikTok";
-  kpis(videos, hist, cfg); chart(videos); ranking(rend); galeria(videos); ejecuciones(hist);
+  kpis(videos, hist, cfg); cobro(videos, histV, cfg); chart(videos); ranking(rend); galeria(videos); ejecuciones(hist);
 })();
 </script>
 </body>

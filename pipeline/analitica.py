@@ -130,7 +130,17 @@ def guardar_panel(token: str, historial: list[dict], destino: Path) -> list[dict
             "comentarios": v.get("comment_count", 0),
             "compartidos": v.get("share_count", 0),
         })
-    destino.write_text(json.dumps({"actualizado": int(datetime.now(timezone.utc).timestamp()),
-                                   "videos": salida}, indent=2, ensure_ascii=False), encoding="utf-8")
+    ahora = int(datetime.now(timezone.utc).timestamp())
+    # Histórico: un punto por video cuando cambian sus vistas (máx. 200 por video)
+    hist_f = destino.parent / "historico_vistas.json"
+    hist = json.loads(hist_f.read_text(encoding="utf-8")) if hist_f.exists() else {}
+    for v in salida:
+        serie = hist.setdefault(v["id"], [])
+        if not serie or serie[-1][1] != v["vistas"]:
+            serie.append([ahora, v["vistas"]])
+            del serie[:-200]
+    hist_f.write_text(json.dumps(hist, separators=(",", ":")), encoding="utf-8")
+    destino.write_text(json.dumps({"actualizado": ahora, "videos": salida}, indent=2, ensure_ascii=False),
+                       encoding="utf-8")
     print(f"  panel: {len(salida)} videos guardados")
     return salida
