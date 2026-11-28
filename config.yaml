@@ -5,15 +5,26 @@ pausado: true
 # ===== Configuración del canal =====
 # Cambia el nicho aquí y el resto del pipeline se adapta.
 canal:
-  nicho: "telenovelas ABSURDAS y exageradas protagonizadas por frutas de distintos países latinoamericanos, cada una con su acento y jerga, con guiños a la cultura pop latina"
-  idioma: "español latinoamericano, tono de compas, muy coloquial"
-  publico: "Latinoamérica (México, Centroamérica y Sudamérica), 15-35 años"
-  estilo_visual: "3D animated cartoon style like a Pixar movie, anthropomorphic fruit characters with expressive faces, arms and legs, vibrant colors, cinematic lighting, vertical composition"
-  # Muletillas: la IA termina cada oración con una de estas
-  muletillas: ["wey", "bro"]
-  # Referencias permitidas a personas reales: solo como guiños de humor, sin inventar frases ni acusaciones
-  referencias: "cantantes, artistas, políticos y presidentes de Latinoamérica"
-  hashtags_base: ["#frutas", "#novela", "#drama", "#humor", "#parati", "#ia"]
+  nicho: "historias de ficción coreana estilo manhwa/murim: artes marciales, poderes ocultos, sectas, venganza y romance, narradas como recap de manhwa"
+  idioma: "español latinoamericano neutro, narración dramática y épica"
+  publico: "Latinoamérica, 13-35 años, fans de anime, manhwa y doramas"
+  estilo_visual: "Korean manhwa webtoon illustration, murim martial arts fantasy, dramatic lighting, glowing qi energy effects, sharp detailed line art, cinematic composition, vertical 9:16 panel"
+  hashtags_base: ["#manhwa", "#murim", "#manhwarecap", "#webtoon", "#historias", "#parati"]
+  # Reglas para planear cada serie (se le pasan a la IA)
+  reglas_serie: |
+    - Mundo coreano de artes marciales (murim): sectas, clanes, montañas sagradas, posadas, mercados, palacios.
+    - Protagonista con PODER OCULTO que todos subestiman (ej. la hija de un maestro retirado que baja de la montaña;
+      el sirviente que en realidad es el mayor espadachín; el joven expulsado que regresa en el tiempo).
+    - Ganchos que enganchan: humillaciones públicas que terminan en revancha épica, pretendientes arrogantes,
+      herencias de técnicas secretas, traiciones de la propia secta, enemigos que descubren demasiado tarde quién es.
+    - Cada parte con al menos un momento de PODER revelado o una PELEA corta y épica, y un giro.
+    - Nombres coreanos (Seo-yeon, Ha-eun, Do-hyun, Jin-woo...), nombres de técnicas épicos ("Espada de las Nueve Nubes").
+  # Reglas para escribir cada parte
+  reglas_parte: |
+    - El NARRADOR cuenta como recap de manhwa, épico y con ritmo rápido ("Pero nadie sabía que...", "Ese fue su peor error.").
+    - Los personajes hablan como en manhwa: el arrogante presume, el viejo maestro es sabio, la protagonista es fría y segura.
+    - Peleas descritas con impacto: movimientos, nombres de técnicas, la reacción de los testigos ("¡¿Qué?! ¡Imposible!").
+    - Sin groserías fuertes; violencia de artes marciales sin sangre explícita.
 
 # ===== Series =====
 # Cada tema se convierte en una serie de N partes (1 video por día).
@@ -23,10 +34,10 @@ serie:
 
 # ===== Llamado a la acción al final de cada video =====
 cta:
-  comentar_parte: true   # "Comenta PARTE 2 si la quieres" -> más comentarios = más alcance
+  comentar_parte: true   # pide comentar "PARTE N"   # "Comenta PARTE 2 si la quieres" -> más comentarios = más alcance
   # Cuando tengas Ko-fi/Buy Me a Coffee en tu bio (TikTok pide 1,000 seguidores para poner enlaces),
   # escribe aquí la frase, p. ej.: "Want more series? Support the channel, link in bio."
-  apoyo: "Si te gustan estas novelas, apoya el canal, link en mi perfil."
+  apoyo: ""
 
 # ===== Frecuencia (según vistas totales del canal) =====
 # El cron corre todos los días, pero solo genera (y gasta créditos) cuando toca.
@@ -67,8 +78,8 @@ video:
 
 # ===== Voz (edge-tts, gratis) =====
 voz:
-  nombre: "es-US-AlonsoNeural"   # narrador (neutro); los personajes usan la voz de su país
-  velocidad: "+22%"   # más rápido = menos pausado
+  nombre: "es-MX-JorgeNeural"   # narrador épico; los personajes reciben otras voces distintas
+  velocidad: "+15%"
 
 # ===== TikTok =====
 tiktok:

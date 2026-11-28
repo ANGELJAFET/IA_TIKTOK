@@ -11,20 +11,14 @@ Formato del canal: {nicho}
 Público: {publico}
 Idioma de todo el contenido: {idioma}
 
-Crea una serie de {partes} partes (un video por día). Cada parte debe entenderse sola pero dejar con ganas de la siguiente (cliffhanger).
+Crea una serie de {partes} partes (un video cada pocos días). Cada parte debe entenderse sola pero dejar con ganas de la siguiente (cliffhanger).
 Tema de la serie: {tema}
 
 Reglas:
-- Los personajes SIEMPRE son frutas con personalidad. Define un elenco fijo de 3 a 5 frutas, cada una con "genero" ("M"/"F")
-  y "pais": código de país latinoamericano (MX, CO, AR, VE, CU, HN, DO, PR, CL, PE, SV, GT). Que sean de PAÍSES DISTINTOS
-  y cada uno hable con la jerga marcada de su país (MX: wey, órale, no manches; CO: parce, qué chimba; AR: che, boludo;
-  VE: chamo, pana; CU: asere; HN: maje, cipote; DO: klk, tíguere; PR: brutal, bro; CL: po, weón; PE: causa, pe).
-- Historias ABSURDAS y exageradas de telenovela: giros ridículos e inesperados (ej. la Piña deja al Mango por un Aguacate
-  que es un vago que solo anda en trocas, el Plátano descubre que su gemelo malvado es un pepino disfrazado, la suegra
-  Toronja se casa con el ex). Mucho drama, chisme, celos y comedia.
-- El humor es sobre los PERSONAJES y sus defectos, nunca burla ni desprecio hacia un país o nacionalidad.
-- Puedes hacer guiños y comparaciones con {referencias} SOLO como humor de cultura pop (ej. "se puso más intenso que concierto de Bad Bunny").
-  NUNCA inventes frases, delitos, escándalos ni acusaciones atribuidas a personas reales; nada de apoyar o atacar partidos, candidatos o elecciones; nada de odio ni burlas por nacionalidad.
+{reglas_serie}
+- Historias 100% ORIGINALES: no copies personajes, nombres ni tramas de obras existentes.
+- Define un elenco fijo de 3 a 5 personajes, cada uno con "genero" ("M"/"F") y un "aspecto" físico MUY concreto
+  (cabello, ropa, colores, rasgos) para que se vean iguales en todas las imágenes.
 - Define UN estilo visual para todas las partes.
 
 No repitas estas series anteriores: {historial}
@@ -33,14 +27,14 @@ No repitas estas series anteriores: {historial}
 Devuelve SOLO JSON:
 {{
   "serie": "título pegajoso de la serie en español",
-  "elenco": [{{"fruta": "Mango", "nombre": "Don Mango", "genero": "M", "pais": "HN", "personalidad": "galán presumido", "aspecto": "mango maduro con bigote y lentes de sol"}}],
+  "elenco": [{{"nombre": "...", "genero": "F", "rol": "...", "personalidad": "...", "aspecto": "descripción visual detallada"}}],
   "estilo_visual": "una oración con el estilo visual común",
   "hashtags": ["#tag1", "#tag2"],
   "partes": [{{"titulo": "título de la parte", "enfoque": "qué pasa en esta parte, 1-2 oraciones"}}]
 }}"""
 
-PROMPT_PARTE = """Eres guionista de videos virales de TikTok para un canal sin rostro de novelas de frutas.
-Público: {publico}. Idioma: {idioma}.
+PROMPT_PARTE = """Eres guionista de videos virales de TikTok para un canal sin rostro.
+Formato: {nicho}. Público: {publico}. Idioma: {idioma}.
 
 Serie: "{serie}" — esta es la PARTE {n} DE {total}.
 Elenco fijo (úsalo igual en todas las partes): {elenco}
@@ -51,24 +45,19 @@ Adelanto de la siguiente parte: {siguiente}
 Reglas:
 - Exactamente {escenas} escenas. Narración total de AL MENOS {palabras} palabras (el video debe durar más de 1 minuto), unas 30 palabras por escena.
 - La escena 1 empieza con "Parte {n}." y luego un gancho que detenga el scroll en menos de 14 palabras.{recap}
-- Cada escena tiene "lineas": un NARRADOR (un compa contando el chisme) y DIÁLOGOS de los personajes del elenco hablando en primera persona.
-  Usa en "quien" exactamente "Narrador" o el "nombre" de un personaje del elenco. Mezcla narración y diálogo; que los personajes discutan, se reclamen y se rían.
-- El NARRADOR termina cada oración con una de estas muletillas, alternándolas: {muletillas}.
-  Cada PERSONAJE habla con el acento y la jerga MUY marcados de su país ("pais" en el elenco) y termina sus frases con
-  la muletilla típica de su país (MX: wey; CO: parce; AR: che/boludo; VE: chamo; CU: asere; HN: maje; DO: mano; CL: po; PE: pe).
-- La historia es ABSURDA: cada escena debe tener una exageración o un giro ridículo que dé risa.
-- Puedes hacer guiños de humor a {referencias} (comparaciones, referencias a canciones o frases famosas reales),
-  pero NUNCA inventes frases, delitos o escándalos de personas reales, ni apoyes o ataques partidos o candidatos.
+- Cada escena tiene "lineas": un NARRADOR y DIÁLOGOS de los personajes del elenco hablando en primera persona.
+  Usa en "quien" exactamente "Narrador" o el "nombre" de un personaje del elenco.
+{reglas_parte}
 - {cierre}
-- Para cada escena escribe un prompt de imagen EN INGLÉS con este estilo: {estilo}. Describe las frutas del elenco por su aspecto.
-  Sin texto, letras ni logos en la imagen. NO dibujes personas reales ni sus caras: solo frutas.
-- Para cada escena escribe también "busqueda": 2-4 palabras EN INGLÉS para buscar video de stock relacionado (ej. "mango fruit closeup").
+- Para cada escena escribe un prompt de imagen EN INGLÉS con este estilo: {estilo}. Describe a los personajes que aparecen
+  con su "aspecto" del elenco (siempre igual). Sin texto, letras, globos ni logos en la imagen. Nada sexual ni gore.
+- Para cada escena escribe también "busqueda": 2-4 palabras EN INGLÉS para buscar video de stock relacionado.
 
 Devuelve SOLO JSON:
 {{
   "titulo": "descripción para TikTok, máx. 110 caracteres, con 1 emoji (sin el número de parte)",
   "resumen": "una oración con lo que pasó en esta parte",
-  "escenas": [{{"lineas": [{{"quien": "Narrador", "texto": "..."}}, {{"quien": "Don Mango", "texto": "..."}}], "imagen": "...", "busqueda": "..."}}]
+  "escenas": [{{"lineas": [{{"quien": "Narrador", "texto": "..."}}, {{"quien": "Nombre", "texto": "..."}}], "imagen": "...", "busqueda": "..."}}]
 }}"""
 
 
@@ -114,10 +103,10 @@ def planear_serie(client: genai.Client, cfg: dict, tema: str | None, historial: 
                   aprendizaje: str = "") -> dict:
     canal = cfg["canal"]
     partes = cfg["serie"]["partes"]
-    tema = tema or f"elige una historia nueva, específica y muy chismosa dentro de: {canal['nicho']}"
+    tema = tema or f"inventa una historia nueva, original y adictiva dentro de: {canal['nicho']}"
     prompt = PROMPT_SERIE.format(
         nicho=canal["nicho"], publico=canal["publico"], idioma=canal["idioma"], partes=partes,
-        referencias=canal.get("referencias", "famosos"),
+        reglas_serie=canal.get("reglas_serie", "").rstrip(),
         tema=tema, historial="; ".join(historial[-60:]) or "none", aprendizaje=aprendizaje,
     )
     plan = _pedir_json(client, cfg["modelos"]["texto"], prompt,
@@ -161,8 +150,8 @@ def generar_parte(client: genai.Client, cfg: dict, plan: dict) -> dict:
         escenas=v["escenas"], palabras=v["palabras_objetivo"], estilo=plan["estilo_visual"],
         recap="" if n == 1 else " La escena 1 puede conectar en pocas palabras con la parte anterior.",
         elenco=json.dumps(plan.get("elenco", []), ensure_ascii=False),
-        muletillas=", ".join(f'"{m}"' for m in cfg["canal"].get("muletillas", [])) or "ninguna",
-        referencias=cfg["canal"].get("referencias", "famosos"),
+        nicho=cfg["canal"]["nicho"],
+        reglas_parte=cfg["canal"].get("reglas_parte", "").rstrip(),
         cierre=_cierre(cfg, n, ultima),
     )
     minimo = int(v["palabras_objetivo"] * 0.9)
