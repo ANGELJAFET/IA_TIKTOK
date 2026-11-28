@@ -24,6 +24,13 @@ cta:
   # escribe aquí la frase, p. ej.: "Want more series? Support the channel, link in bio."
   apoyo: "Si te gustan estas novelas, apoya el canal, link en mi perfil."
 
+# ===== Frecuencia (según vistas totales del canal) =====
+# El cron corre todos los días, pero solo genera (y gasta créditos) cuando toca.
+frecuencia:
+  - {desde_vistas: 0,    cada_dias: 3}
+  - {desde_vistas: 1000, cada_dias: 2}
+  - {desde_vistas: 5000, cada_dias: 1}
+
 # ===== Visuales =====
 # "pexels" -> videos de stock reales, GRATIS (necesita PEXELS_API_KEY)
 # "gemini" -> imágenes generadas con IA (≈ $0.034 c/u, necesita facturación activa en Google)

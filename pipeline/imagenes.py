@@ -33,6 +33,8 @@ def generar_imagen(client: genai.Client, modelo: str, prompt: str, destino: Path
             ultimo_error = "la respuesta no trajo imagen"
         except Exception as e:  # cuota, filtro de seguridad, red...
             ultimo_error = e
+            if any(k in str(e) for k in ("RESOURCE_EXHAUSTED", "PERMISSION_DENIED", "API_KEY", "billing")):
+                break  # sin cuota o sin permiso: reintentar no sirve
         print(f"  imagen falló (intento {intento + 1}): {ultimo_error}")
         time.sleep(5 * (intento + 1))
     raise RuntimeError(f"No se pudo generar la imagen: {ultimo_error}")

@@ -134,9 +134,12 @@ def planear_serie(client: genai.Client, cfg: dict, tema: str | None, historial: 
 def _cierre(cfg: dict, n: int, ultima: bool) -> str:
     cta = cfg.get("cta", {})
     if ultima:
-        txt = "La última escena cierra toda la serie y dice: \"Sígueme para la próxima novela.\""
+        txt = ("La última escena resuelve la serie PERO termina con un giro final inesperado que deja una pregunta "
+               "abierta (ej. aparece alguien que nadie esperaba) y dice: \"Sígueme para la próxima novela.\"")
     else:
-        txt = f"La última escena deja en suspenso la parte {n + 1} y dice: \"Sígueme para no perderte la parte {n + 1} mañana.\""
+        txt = (f"La última escena termina en SUSPENSO MÁXIMO: un giro impactante o una revelación cortada a la mitad "
+               f"(ej. \"y cuando abrió la puerta, no lo podía creer...\"), sin resolverlo, y dice: "
+               f"\"Sígueme para no perderte la parte {n + 1}.\"")
         if cta.get("comentar_parte"):
             txt += f" También pide que comenten \"PARTE {n + 1}\" si la quieren."
     if cta.get("apoyo"):

@@ -43,6 +43,30 @@ def quitar_de_cola(tema: str):
         TEMAS.write_text("\n".join(lineas) + "\n", encoding="utf-8")
 
 
+def toca_video(cfg: dict, historial: list[dict]) -> bool:
+    """Decide si hoy toca generar según las vistas totales del canal (data/videos.json)."""
+    vistas = 0
+    f = RAIZ / "data" / "videos.json"
+    if f.exists():
+        vistas = sum(v.get("vistas", 0) for v in json.loads(f.read_text(encoding="utf-8")).get("videos", []))
+    dias = 3
+    for regla in cfg.get("frecuencia", [{"desde_vistas": 0, "cada_dias": 3}]):
+        if vistas >= regla["desde_vistas"]:
+            dias = regla["cada_dias"]
+    hechos = [h for h in historial if h.get("estado") not in ("error", None) and not h.get("prueba")]
+    if not hechos:
+        print(f"▶ Primer video (vistas totales: {vistas})")
+        return True
+    ultimo = datetime.strptime(hechos[-1]["fecha"], "%Y%m%d-%H%M%S").replace(tzinfo=timezone.utc)
+    pasados = (datetime.now(timezone.utc) - ultimo).total_seconds() / 86400
+    if pasados + 0.5 < dias:  # margen: el cron corre a otra hora que el último video
+        print(f"▶ Hoy no toca: {vistas} vistas → 1 video cada {dias} días; último hace {pasados:.1f} días. "
+              f"No se gasta nada.")
+        return False
+    print(f"▶ Toca video: {vistas} vistas → cada {dias} días (último hace {pasados:.1f} días)")
+    return True
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--solo-generar", action="store_true")
@@ -83,6 +107,10 @@ def main():
         except Exception as e:
             print(f"  (sin estadísticas: {e})")
     if args.solo_estadisticas:
+        return
+
+    # Frecuencia según vistas totales: solo genera (y gasta créditos) cuando toca
+    if os.environ.get("GITHUB_EVENT_NAME") == "schedule" and not toca_video(cfg, historial):
         return
 
     if args.resubir:
@@ -156,7 +184,8 @@ def main():
                 tipo = "video"
                 print(f"  escena animada con Veo")
             except Exception as err:
-                print(f"  Veo falló ({str(err)[:100]}); se usa la imagen con movimiento")
+                print(f"  Veo falló ({str(err)[:100]}); se usa la imagen con movimiento y no se reintenta")
+                cfg.setdefault("animacion", {})["modo"] = "imagenes"  # no insistir en las demás escenas
 
         mp3 = trabajo / f"voz_{i:02d}.mp3"
         if not plan.get("voces"):
@@ -173,7 +202,7 @@ def main():
 
     tags = list(dict.fromkeys(g.get("hashtags", []) + cfg["canal"]["hashtags_base"]))
     titulo = f"{g['titulo']} {' '.join(tags)}"
-    registro = {"fecha": sello, "serie": plan["serie"], "parte": g["parte"], "tema": g["tema"],
+    registro = {"fecha": sello, "serie": plan["serie"], "parte": g["parte"], "tema": g["tema"], "prueba": es_prueba,
                 "titulo": titulo, "duracion": round(dur, 1)}
 
     if args.solo_generar:
