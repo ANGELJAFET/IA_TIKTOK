@@ -63,6 +63,28 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
 .barra{height:8px;border-radius:99px;background:var(--grid);overflow:hidden;margin:6px 0 2px}
 .barra i{display:block;height:100%;background:var(--series-1);border-radius:99px}
 section{margin-bottom:16px}
+/* ===== Teléfono ===== */
+@media (max-width:640px){
+  .viz-root{padding:16px 10px 40px}
+  h1{font-size:1.35rem}
+  header .muted{font-size:.75rem}
+  .card{padding:12px;border-radius:10px}
+  .kpis{grid-template-columns:repeat(2,1fr);gap:8px}
+  .kpi .value{font-size:1.3rem}
+  .kpi .sub{font-size:.7rem}
+  .videos{grid-template-columns:repeat(2,1fr);gap:8px}
+  .v .b{padding:8px;font-size:.75rem}
+  .v img,.v .ph{aspect-ratio:3/4}
+  .aviso{padding:10px;gap:8px}
+  /* tablas -> tarjetas apiladas */
+  table.apilar thead{display:none}
+  table.apilar,table.apilar tbody,table.apilar tr,table.apilar td{display:block;width:100%}
+  table.apilar tr{border-bottom:1px solid var(--border);padding:8px 0}
+  table.apilar td{border:0;padding:2px 0;text-align:left}
+  table.apilar td.n{text-align:left}
+  table.apilar td[data-l]::before{content:attr(data-l) ": ";color:var(--text-secondary)}
+  table.apilar td:first-child{font-weight:600}
+}
 </style>
 </head>
 <body>
@@ -84,7 +106,7 @@ section{margin-bottom:16px}
     <div class="card">
       <h2>Vistas por video</h2>
       <div id="chart"><div class="tip" id="tip"></div></div>
-      <div class="note">Cada barra es un video, en orden de publicación. Pasa el cursor para ver el detalle.</div>
+      <div class="note">Cada barra es un video, en orden de publicación. Toca o pasa el cursor sobre una barra para ver el detalle.</div>
     </div>
     <div class="card">
       <h2>Series que más gustan</h2>
@@ -181,13 +203,13 @@ function cobro(videos, hist, cfg){
     texto=`Solo el ${Math.round(pctPico)}% de lo ganado está en videos que ya tocaron su pico. Si esperas unos días el saldo puede subir más.`;
   }
   const filas = est.filter(e=>e.elegible).sort((a,b)=>b.ganancia-a.ganancia).slice(0,8).map(e=>`
-    <tr><td>${esc((e.v.titulo||"").slice(0,60))}</td><td class="n">${nf.format(e.v.vistas)}</td>
-    <td class="n">${usd.format(e.ganancia)}</td>
+    <tr><td>${esc((e.v.titulo||"").slice(0,60))}</td><td class="n" data-l="Vistas">${nf.format(e.v.vistas)}</td>
+    <td class="n" data-l="Ganancia">${usd.format(e.ganancia)}</td>
     <td>${e.edadDias<3?'<span class="badge pend">• Muy nuevo</span>':e.crec===null?'<span class="badge pend">• Midiendo</span>':e.pico?'<span class="badge ok">✔ En su pico</span>':`<span class="badge">📈 +${e.crec.toFixed(0)}% en 48 h</span>`}</td></tr>`).join("");
   el.innerHTML = `
     <div class="aviso"><div class="ic">${ic}</div><div><b>${titulo}</b><span class="muted">${texto}</span></div></div>
     ${cfg.rpm?`<div class="muted">Progreso hacia el mínimo de retiro</div><div class="barra"><i style="width:${prog}%"></i></div>`:""}
-    ${filas?`<table style="margin-top:12px"><thead><tr><th>Video</th><th class="n">Vistas</th><th class="n">Ganancia est.</th><th>Estado</th></tr></thead><tbody>${filas}</tbody></table>`
+    ${filas?`<table class="apilar" style="margin-top:12px"><thead><tr><th>Video</th><th class="n">Vistas</th><th class="n">Ganancia est.</th><th>Estado</th></tr></thead><tbody>${filas}</tbody></table>`
            :'<div class="empty">Aquí aparecerá cada video de más de 1 minuto con lo que lleva ganado y si ya llegó a su pico.</div>'}
     <p class="note">Estimado con las vistas: TikTok no da el saldo real por su API. Para cobrar necesitas estar en su programa de recompensas (pide seguidores y vistas mínimas) y los videos deben durar más de 1 minuto.</p>`;
 }
@@ -196,7 +218,8 @@ function chart(videos){
   const box = document.getElementById("chart"), tip = document.getElementById("tip");
   const data = [...videos].sort((a,b)=>a.fecha-b.fecha);
   if(!data.length){ box.insertAdjacentHTML("afterbegin",'<div class="empty">Aún no hay videos publicados.</div>'); return; }
-  const W=700,H=240,P={l:44,r:8,t:10,b:26};
+  const movil = box.clientWidth < 520;
+  const W=movil?360:700,H=movil?260:240,P={l:40,r:6,t:10,b:26};
   const max = Math.max(...data.map(d=>d.vistas),1);
   const nice = (()=>{const p=Math.pow(10,Math.floor(Math.log10(max)));for(const m of [1,2,2.5,5,10]) if(m*p>=max) return m*p;})();
   const iw=W-P.l-P.r, ih=H-P.t-P.b, step=iw/data.length, bw=Math.max(2,Math.min(28,step-2));
@@ -204,7 +227,7 @@ function chart(videos){
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Vistas por video">`;
   for(let i=0;i<=4;i++){const v=nice*i/4, yy=y(v);
     s+=`<line x1="${P.l}" x2="${W-P.r}" y1="${yy}" y2="${yy}" stroke="var(--grid)" stroke-width="1"/>`+
-       `<text x="${P.l-6}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--text-secondary)">${nf.format(v)}</text>`;}
+       `<text x="${P.l-6}" y="${yy+4}" text-anchor="end" font-size="${movil?12:11}" fill="var(--text-secondary)">${nf.format(v)}</text>`;}
   data.forEach((d,i)=>{
     const x=P.l+i*step+(step-bw)/2, yy=y(d.vistas), h=Math.max(1,P.t+ih-yy), r=Math.min(4,bw/2,h);
     s+=`<path d="M${x},${P.t+ih} V${yy+r} Q${x},${yy} ${x+r},${yy} H${x+bw-r} Q${x+bw},${yy} ${x+bw},${yy+r} V${P.t+ih} Z" fill="var(--series-1)"/>`;
@@ -215,6 +238,7 @@ function chart(videos){
   s+=`</svg>`;
   box.insertAdjacentHTML("afterbegin", s);
   box.querySelectorAll(".hit").forEach(el=>{
+    el.addEventListener("click",e=>el.dispatchEvent(new MouseEvent("mousemove",{clientX:e.clientX,clientY:e.clientY})));
     el.addEventListener("mousemove",e=>{
       const d=data[+el.dataset.i], r=box.getBoundingClientRect();
       tip.innerHTML=`<b>${esc((d.titulo||"").slice(0,48))}</b><br>${fecha(d.fecha)} · ${nf.format(d.vistas)} vistas · ${nf.format(d.likes)} likes`;
@@ -229,8 +253,8 @@ function chart(videos){
 function ranking(rend){
   const el=document.getElementById("ranking");
   if(!rend.length){ el.innerHTML='<div class="empty">Se llena cuando haya videos publicados de al menos una serie.</div>'; return; }
-  el.innerHTML=`<table><thead><tr><th>Serie</th><th class="n">Vistas prom.</th><th class="n">Coment.</th></tr></thead><tbody>`+
-    [...rend].sort((a,b)=>(b.puntaje??b.vistas_promedio)-(a.puntaje??a.vistas_promedio)).slice(0,8).map((r,i)=>`<tr><td>${i===0?"🏆 ":""}${esc(r.serie)}</td><td class="n">${nf.format(r.vistas_promedio)}</td><td class="n">${nf.format(r.comentarios)}</td></tr>`).join("")+
+  el.innerHTML=`<table class="apilar"><thead><tr><th>Serie</th><th class="n">Vistas prom.</th><th class="n">Coment.</th></tr></thead><tbody>`+
+    [...rend].sort((a,b)=>(b.puntaje??b.vistas_promedio)-(a.puntaje??a.vistas_promedio)).slice(0,8).map((r,i)=>`<tr><td>${i===0?"🏆 ":""}${esc(r.serie)}</td><td class="n" data-l="Vistas prom.">${nf.format(r.vistas_promedio)}</td><td class="n" data-l="Comentarios">${nf.format(r.comentarios)}</td></tr>`).join("")+
     `</tbody></table>`;
 }
 
@@ -254,22 +278,27 @@ function ejecuciones(hist){
   const est = e => ({PUBLISH_COMPLETE:['ok','Publicado'],SEND_TO_USER_INBOX:['ok','Enviado a borradores'],
     solo_generado:['pend','Solo generado (prueba)'],error:['err','Error']})[e]||['pend',e||'—'];
   if(!hist.length){ el.innerHTML='<div class="empty">Sin ejecuciones todavía.</div>'; return; }
-  el.innerHTML=`<table><thead><tr><th>Fecha</th><th>Video</th><th>Estado</th><th class="n">Duración</th></tr></thead><tbody>`+
+  el.innerHTML=`<table class="apilar"><thead><tr><th>Video</th><th>Fecha</th><th>Estado</th><th class="n">Duración</th></tr></thead><tbody>`+
     [...hist].reverse().slice(0,15).map(h=>{
       const [c,t]=est(h.estado), f=h.fecha?h.fecha.replace(/(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2}).*/,"$3/$2 $4:$5 UTC"):"";
-      return `<tr><td>${f}</td><td>${esc(h.tema||h.serie||"")}</td><td><span class="badge ${c}">${c==='ok'?'✔':c==='err'?'✖':'•'} ${esc(t)}</span></td><td class="n">${h.duracion?h.duracion+" s":""}</td></tr>`;
+      return `<tr><td>${esc(h.tema||h.serie||"")}</td><td data-l="Fecha">${f}</td><td><span class="badge ${c}">${c==='ok'?'✔':c==='err'?'✖':'•'} ${esc(t)}</span></td><td class="n" data-l="Duración">${h.duracion?h.duracion+" s":""}</td></tr>`;
     }).join("")+`</tbody></table>`;
 }
 
-(async()=>{
+async function cargar(){
+  document.querySelectorAll("#chart svg").forEach(e=>e.remove());
+  document.querySelectorAll("#chart .empty").forEach(e=>e.remove());
   const [vid, hist, rend, cfg, histV] = await Promise.all([
     getJSON("data/videos.json",{videos:[],actualizado:0}), getJSON("data/historial.json",[]),
     getJSON("data/rendimiento.json",[]), getConfig(), getJSON("data/historico_vistas.json",{})]);
   const videos = vid.videos||[];
   document.getElementById("actualizado").textContent = vid.actualizado
-    ? "Estadísticas actualizadas: "+new Date(vid.actualizado*1000).toLocaleString("es-HN") : "Estadísticas: aún sin datos de TikTok";
+    ? "Datos de TikTok: "+new Date(vid.actualizado*1000).toLocaleString("es-HN",{dateStyle:"short",timeStyle:"short"})+" · se actualiza solo" : "Estadísticas: aún sin datos de TikTok";
   kpis(videos, hist, cfg); cobro(videos, histV, cfg); chart(videos); ranking(rend); galeria(videos); ejecuciones(hist);
-})();
+}
+cargar();
+setInterval(cargar, 120000);  // se refresca solo cada 2 minutos
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) cargar(); });
 </script>
 </body>
 </html>
