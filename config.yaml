@@ -49,7 +49,7 @@ voz:
 tiktok:
   # "directo"  -> publica en el perfil
   # "borrador" -> lo manda a tu bandeja de TikTok para que lo publiques tú (revisión manual)
-  modo: "borrador"   # te llega a la bandeja de TikTok para revisarlo y publicarlo tú
+  modo: "directo"   # se publica en tu perfil; mientras la app no esté aprobada sale en PRIVADO (solo tú)
   # Mientras la app NO esté auditada por TikTok, solo se permite SELF_ONLY (privado).
   # Después de la auditoría cambia a PUBLIC_TO_EVERYONE.
   privacidad: "SELF_ONLY"
