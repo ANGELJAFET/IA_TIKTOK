@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel – Fact Drop</title>
+<meta name="robots" content="noindex">
+<style>
+.viz-root{
+  color-scheme:light;
+  --bg:#f6f5f8; --surface-1:#ffffff; --border:#e4e2e8;
+  --text-primary:#191919; --text-secondary:#666666;
+  --series-1:#257de0; --grid:#ececec; --brand:#6a2bb3;
+  --good:#0a7d24; --critical:#c62828; --warn:#a15c00;
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])) .viz-root{
+    color-scheme:dark;
+    --bg:#111014; --surface-1:#191919; --border:#2c2a31;
+    --text-primary:#efefef; --text-secondary:#9c9c9c;
+    --series-1:#338ced; --grid:#2a2a2a; --brand:#b98af0;
+    --good:#0aac23; --critical:#eb6263; --warn:#d28e05;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.viz-root{background:var(--bg);color:var(--text-primary);min-height:100vh;padding:24px 16px 48px}
+.wrap{max-width:1100px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:20px}
+h1{font-size:1.6rem;margin:0}
+h1 span{color:var(--brand)}
+h2{font-size:1.05rem;margin:0 0 12px}
+.muted{color:var(--text-secondary);font-size:.85rem}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:12px;margin-bottom:16px}
+.kpi .label{color:var(--text-secondary);font-size:.8rem}
+.kpi .value{font-size:1.6rem;font-weight:650;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .sub{color:var(--text-secondary);font-size:.75rem;margin-top:2px}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px}
+@media (max-width:800px){.grid2{grid-template-columns:1fr}}
+#chart{position:relative}
+#chart svg{display:block;width:100%;height:auto}
+.tip{position:absolute;pointer-events:none;background:var(--surface-1);border:1px solid var(--border);border-radius:8px;
+  padding:6px 10px;font-size:.8rem;box-shadow:0 4px 14px rgba(0,0,0,.2);display:none;white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--border)}
+th{color:var(--text-secondary);font-weight:500}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.videos{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.v{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;color:inherit;text-decoration:none}
+.v img,.v .ph{width:100%;aspect-ratio:9/16;object-fit:cover;background:var(--grid);display:block}
+.v .ph{display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:.8rem}
+.v .b{padding:10px;font-size:.8rem;display:flex;flex-direction:column;gap:4px}
+.v .t{font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.v .s{display:flex;flex-wrap:wrap;gap:4px 8px;white-space:nowrap;color:var(--text-secondary);font-variant-numeric:tabular-nums}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.72rem;border:1px solid var(--border)}
+.ok{color:var(--good)} .err{color:var(--critical)} .pend{color:var(--warn)}
+.empty{padding:28px;text-align:center;color:var(--text-secondary)}
+.note{font-size:.75rem;color:var(--text-secondary);margin-top:8px}
+section{margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="viz-root">
+<div class="wrap">
+  <header>
+    <h1>Fact <span>Drop</span> · Panel</h1>
+    <div class="muted" id="actualizado">Cargando…</div>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>Vistas por video</h2>
+      <div id="chart"><div class="tip" id="tip"></div></div>
+      <div class="note">Cada barra es un video, en orden de publicación. Pasa el cursor para ver el detalle.</div>
+    </div>
+    <div class="card">
+      <h2>Series que más gustan</h2>
+      <div id="ranking"></div>
+    </div>
+  </div>
+
+  <section class="card">
+    <h2>Videos publicados</h2>
+    <div class="videos" id="videos"></div>
+  </section>
+
+  <section class="card">
+    <h2>Últimas ejecuciones</h2>
+    <div id="ejecuciones"></div>
+  </section>
+
+  <p class="note" id="nota-ingresos"></p>
+</div>
+</div>
+
+<script>
+const RAW = "https://raw.githubusercontent.com/ANGELJAFET/IA_TIKTOK/main/";
+const nf = new Intl.NumberFormat("es-HN");
+const usd = new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",minimumFractionDigits:2});
+const fecha = ts => new Date(ts*1000).toLocaleDateString("es-HN",{day:"numeric",month:"short"});
+const esc = s => String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+async function getJSON(path, def){
+  try{ const r = await fetch(RAW+path+"?t="+Date.now()); if(!r.ok) return def; return await r.json(); }catch{ return def; }
+}
+async function getConfig(){
+  try{
+    const t = await (await fetch(RAW+"config.yaml?t="+Date.now())).text();
+    const num = k => { const m = t.match(new RegExp(k+":\\s*([0-9.]+)")); return m ? parseFloat(m[1]) : null; };
+    return { rpm: num("usd_por_1000_vistas") ?? 0, costo: num("costo_por_video_usd") ?? 0.14 };
+  }catch{ return {rpm:0,costo:0.14}; }
+}
+
+function kpis(videos, historial, cfg){
+  const sum = k => videos.reduce((a,v)=>a+(v[k]||0),0);
+  const vistas = sum("vistas");
+  const generados = historial.filter(h=>h.estado && h.estado!=="error").length;
+  const ingresos = vistas/1000*cfg.rpm;
+  const gasto = generados*cfg.costo;
+  const items = [
+    ["Videos en TikTok", nf.format(videos.length), `${nf.format(generados)} generados en total`],
+    ["Vistas", nf.format(vistas), videos.length? `${nf.format(Math.round(vistas/videos.length))} por video`:"—"],
+    ["Likes", nf.format(sum("likes")), ""],
+    ["Comentarios", nf.format(sum("comentarios")), ""],
+    ["Compartidos", nf.format(sum("compartidos")), ""],
+    ["Ingresos estimados", cfg.rpm? usd.format(ingresos) : "—", cfg.rpm? `a ${usd.format(cfg.rpm)} por 1000 vistas` : "sin programa de pago"],
+    ["Gasto en IA", usd.format(gasto), `≈ ${usd.format(cfg.costo)} por video`],
+  ];
+  document.getElementById("kpis").innerHTML = items.map(([l,v,s])=>
+    `<div class="card kpi"><div class="label">${l}</div><div class="value">${v}</div><div class="sub">${s}</div></div>`).join("");
+  document.getElementById("nota-ingresos").textContent =
+    "Los ingresos son un estimado: TikTok no comparte los pagos reales por su API. Ajusta el valor en config.yaml → panel.usd_por_1000_vistas. Los programas de pago de TikTok exigen videos de más de 1 minuto y un mínimo de seguidores.";
+}
+
+function chart(videos){
+  const box = document.getElementById("chart"), tip = document.getElementById("tip");
+  const data = [...videos].sort((a,b)=>a.fecha-b.fecha);
+  if(!data.length){ box.insertAdjacentHTML("afterbegin",'<div class="empty">Aún no hay videos publicados.</div>'); return; }
+  const W=700,H=240,P={l:44,r:8,t:10,b:26};
+  const max = Math.max(...data.map(d=>d.vistas),1);
+  const nice = (()=>{const p=Math.pow(10,Math.floor(Math.log10(max)));for(const m of [1,2,2.5,5,10]) if(m*p>=max) return m*p;})();
+  const iw=W-P.l-P.r, ih=H-P.t-P.b, step=iw/data.length, bw=Math.max(2,Math.min(28,step-2));
+  const y = v => P.t+ih-(v/nice)*ih;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Vistas por video">`;
+  for(let i=0;i<=4;i++){const v=nice*i/4, yy=y(v);
+    s+=`<line x1="${P.l}" x2="${W-P.r}" y1="${yy}" y2="${yy}" stroke="var(--grid)" stroke-width="1"/>`+
+       `<text x="${P.l-6}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--text-secondary)">${nf.format(v)}</text>`;}
+  data.forEach((d,i)=>{
+    const x=P.l+i*step+(step-bw)/2, yy=y(d.vistas), h=Math.max(1,P.t+ih-yy), r=Math.min(4,bw/2,h);
+    s+=`<path d="M${x},${P.t+ih} V${yy+r} Q${x},${yy} ${x+r},${yy} H${x+bw-r} Q${x+bw},${yy} ${x+bw},${yy+r} V${P.t+ih} Z" fill="var(--series-1)"/>`;
+    s+=`<rect class="hit" data-i="${i}" x="${P.l+i*step}" y="${P.t}" width="${step}" height="${ih}" fill="transparent"/>`;
+  });
+  const lab = [0, Math.floor((data.length-1)/2), data.length-1].filter((v,i,a)=>a.indexOf(v)===i);
+  lab.forEach(i=>{ s+=`<text x="${P.l+i*step+step/2}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--text-secondary)">${fecha(data[i].fecha)}</text>`; });
+  s+=`</svg>`;
+  box.insertAdjacentHTML("afterbegin", s);
+  box.querySelectorAll(".hit").forEach(el=>{
+    el.addEventListener("mousemove",e=>{
+      const d=data[+el.dataset.i], r=box.getBoundingClientRect();
+      tip.innerHTML=`<b>${esc((d.titulo||"").slice(0,48))}</b><br>${fecha(d.fecha)} · ${nf.format(d.vistas)} vistas · ${nf.format(d.likes)} likes`;
+      tip.style.display="block";
+      tip.style.left=Math.min(e.clientX-r.left+12, r.width-tip.offsetWidth-4)+"px";
+      tip.style.top=(e.clientY-r.top-40)+"px";
+    });
+    el.addEventListener("mouseleave",()=>tip.style.display="none");
+  });
+}
+
+function ranking(rend){
+  const el=document.getElementById("ranking");
+  if(!rend.length){ el.innerHTML='<div class="empty">Se llena cuando haya videos publicados de al menos una serie.</div>'; return; }
+  el.innerHTML=`<table><thead><tr><th>Serie</th><th class="n">Vistas prom.</th><th class="n">Coment.</th></tr></thead><tbody>`+
+    [...rend].sort((a,b)=>(b.puntaje??b.vistas_promedio)-(a.puntaje??a.vistas_promedio)).slice(0,8).map((r,i)=>`<tr><td>${i===0?"🏆 ":""}${esc(r.serie)}</td><td class="n">${nf.format(r.vistas_promedio)}</td><td class="n">${nf.format(r.comentarios)}</td></tr>`).join("")+
+    `</tbody></table>`;
+}
+
+function galeria(videos){
+  const el=document.getElementById("videos");
+  if(!videos.length){ el.innerHTML='<div class="empty">Cuando publiques el primer video aparecerá aquí con su portada y estadísticas.</div>'; return; }
+  el.innerHTML = videos.map(v=>`
+    <a class="v" href="${esc(v.enlace)}" target="_blank" rel="noopener">
+      ${v.portada?`<img loading="lazy" src="${esc(v.portada)}" alt="" onerror="this.outerHTML='<div class=ph>Sin portada</div>'">`:'<div class="ph">Sin portada</div>'}
+      <div class="b">
+        <div class="t">${esc(v.titulo||"(sin título)")}</div>
+        ${v.serie?`<div class="muted">${esc(v.serie)}</div>`:""}
+        <div class="s"><span>👁 ${nf.format(v.vistas)}</span><span>❤ ${nf.format(v.likes)}</span><span>💬 ${nf.format(v.comentarios)}</span><span>↗ ${nf.format(v.compartidos)}</span></div>
+        <div class="muted">${fecha(v.fecha)}</div>
+      </div>
+    </a>`).join("");
+}
+
+function ejecuciones(hist){
+  const el=document.getElementById("ejecuciones");
+  const est = e => ({PUBLISH_COMPLETE:['ok','Publicado'],SEND_TO_USER_INBOX:['ok','Enviado a borradores'],
+    solo_generado:['pend','Solo generado (prueba)'],error:['err','Error']})[e]||['pend',e||'—'];
+  if(!hist.length){ el.innerHTML='<div class="empty">Sin ejecuciones todavía.</div>'; return; }
+  el.innerHTML=`<table><thead><tr><th>Fecha</th><th>Video</th><th>Estado</th><th class="n">Duración</th></tr></thead><tbody>`+
+    [...hist].reverse().slice(0,15).map(h=>{
+      const [c,t]=est(h.estado), f=h.fecha?h.fecha.replace(/(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2}).*/,"$3/$2 $4:$5 UTC"):"";
+      return `<tr><td>${f}</td><td>${esc(h.tema||h.serie||"")}</td><td><span class="badge ${c}">${c==='ok'?'✔':c==='err'?'✖':'•'} ${esc(t)}</span></td><td class="n">${h.duracion?h.duracion+" s":""}</td></tr>`;
+    }).join("")+`</tbody></table>`;
+}
+
+(async()=>{
+  const [vid, hist, rend, cfg] = await Promise.all([
+    getJSON("data/videos.json",{videos:[],actualizado:0}), getJSON("data/historial.json",[]),
+    getJSON("data/rendimiento.json",[]), getConfig()]);
+  const videos = vid.videos||[];
+  document.getElementById("actualizado").textContent = vid.actualizado
+    ? "Estadísticas actualizadas: "+new Date(vid.actualizado*1000).toLocaleString("es-HN") : "Estadísticas: aún sin datos de TikTok";
+  kpis(videos, hist, cfg); chart(videos); ranking(rend); galeria(videos); ejecuciones(hist);
+})();
+</script>
+</body>
+</html>
