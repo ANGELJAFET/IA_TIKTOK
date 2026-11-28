@@ -1,22 +1,23 @@
 name: Actualizar estadísticas
 
-# Refresca vistas/likes/comentarios para el panel cada 15 minutos (no gasta créditos de Google).
+# Casi tiempo real: cada ejecución dura ~29 min consultando TikTok cada minuto, y se relanza cada 30 min.
+# No gasta créditos de Google (solo consulta la API de TikTok).
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: publicar-tiktok
-  cancel-in-progress: false
+  group: estadisticas
+  cancel-in-progress: true
 
 jobs:
   estadisticas:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -30,7 +31,10 @@ jobs:
           TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
           TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
-        run: python main.py --solo-estadisticas
+        run: |
+          git config user.name "tiktok-bot"
+          git config user.email "bot@users.noreply.github.com"
+          python main.py --solo-estadisticas --bucle 28
       - name: Renovar token de TikTok si cambió
         if: always()
         env:

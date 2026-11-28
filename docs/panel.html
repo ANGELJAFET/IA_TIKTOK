@@ -297,7 +297,7 @@ async function cargar(){
   kpis(videos, hist, cfg); cobro(videos, histV, cfg); chart(videos); ranking(rend); galeria(videos); ejecuciones(hist);
 }
 cargar();
-setInterval(cargar, 120000);  // se refresca solo cada 2 minutos
+setInterval(cargar, 30000);  // se refresca solo cada 30 segundos
 document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) cargar(); });
 </script>
 </body>

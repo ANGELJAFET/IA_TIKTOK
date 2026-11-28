@@ -43,6 +43,27 @@ def quitar_de_cola(tema: str):
         TEMAS.write_text("\n".join(lineas) + "\n", encoding="utf-8")
 
 
+def estadisticas_en_bucle(token: str, historial: list[dict], minutos: int, cada: int = 60):
+    """Casi tiempo real: consulta TikTok cada `cada` segundos y sube los datos al repo si cambiaron."""
+    import subprocess
+    import time as _t
+    fin = _t.time() + minutos * 60
+    while _t.time() < fin:
+        _t.sleep(cada)
+        try:
+            analitica.guardar_panel(token, historial, RAIZ / "data" / "videos.json")
+        except Exception as e:
+            print(f"  (TikTok no respondió: {e})")
+            continue
+        subprocess.run(["git", "add", "data/videos.json", "data/historico_vistas.json"], cwd=RAIZ)
+        if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=RAIZ).returncode != 0:
+            subprocess.run(["git", "commit", "-qm", "Estadísticas en vivo"], cwd=RAIZ)
+            for _ in range(3):
+                if subprocess.run(["git", "pull", "--rebase", "-q"], cwd=RAIZ).returncode == 0 and \
+                   subprocess.run(["git", "push", "-q"], cwd=RAIZ).returncode == 0:
+                    break
+
+
 def toca_video(cfg: dict, historial: list[dict]) -> bool:
     """Decide si hoy toca generar según las vistas totales del canal (data/videos.json)."""
     vistas = 0
@@ -72,6 +93,7 @@ def main():
     ap.add_argument("--solo-generar", action="store_true")
     ap.add_argument("--tema")
     ap.add_argument("--solo-estadisticas", action="store_true", help="solo actualiza los datos del panel")
+    ap.add_argument("--bucle", type=int, default=0, help="con --solo-estadisticas: repite cada 60 s durante N minutos")
     ap.add_argument("--resubir", help="carpeta con final.mp4 y guion.json de un intento anterior: lo sube sin generar")
     args = ap.parse_args()
 
@@ -106,6 +128,8 @@ def main():
             analitica.actualizar(tok["access_token"], historial, RAIZ / "data" / "rendimiento.json")
         except Exception as e:
             print(f"  (sin estadísticas: {e})")
+    if args.solo_estadisticas and args.bucle and tok:
+        estadisticas_en_bucle(tok["access_token"], historial, args.bucle)
     if args.solo_estadisticas:
         return
 
