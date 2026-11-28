@@ -8,5 +8,15 @@
     "duracion": 25.1,
     "publish_id": "v_inbox_file~v2.7713031318015232006",
     "estado": "SEND_TO_USER_INBOX"
+  },
+  {
+    "fecha": "20261128-014850",
+    "serie": "The Town Under One Roof: Life in Whittier, Alaska",
+    "parte": 2,
+    "tema": "The Town Under One Roof: Life in Whittier, Alaska (part 2/7)",
+    "titulo": "The Town Under One Roof: Life in Whittier, Alaska — Part 2/7: The Cold War secret hidden inside this Alaskan tower ❄️ #whittieralaska #begichowers #mindblowingfacts #alaskalife #mystery #facts #didyouknow #learnontiktok #mindblown",
+    "duracion": 22.5,
+    "estado": "error",
+    "error": "unaudited_client_can_only_post_to_private_accounts: Please review our integration guidelines at https://developers.tiktok.com/doc/content-sharing-guidelines/ (log_id 202611280952332551E7C38F8EC4CED26E)"
   }
 ]
